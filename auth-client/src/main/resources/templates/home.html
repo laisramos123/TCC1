@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <title>Home</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <h1>Página Inicial</h1>
+    <div>
+        <p>Bem-vindo, <span th:text="${userName}">Usuário</span>!</p>
+        <p>Você está autenticado com sucesso usando OAuth2.</p>
+        
+        <h2>Seus Dados:</h2>
+        <ul>
+            <li th:each="attr : ${userAttributes}">
+                <span th:text="${attr.key}">Key</span>: <span th:text="${attr.value}">Value</span>
+            </li>
+        </ul>
+        
+        <div>
+            <a href="/profile">Ver Perfil</a> | 
+            <a href="/api-data">Acessar Dados da API</a> | 
+            <a href="/">Voltar para Home</a>
+            
+            <form th:action="@{/logout}" method="post" style="display: inline-block;">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <title>Cliente OAuth2</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <h1>Bem-vindo ao Cliente OAuth2</h1>
+    <div sec:authorize="!isAuthenticated()">
+        <p>Você não está autenticado.</p>
+        <a href="/login">Fazer login</a>
+    </div>
+    <div sec:authorize="isAuthenticated()">
+        <p>Olá, <span sec:authentication="name">Usuário</span>!</p>
+        <p>Você está logado.</p>
+        <ul>
+            <li><a href="/home">Página Inicial</a></li>
+            <li><a href="/profile">Perfil</a></li>
+            <li><a href="/api-data">Dados da API</a></li>
+            <li>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit">Logout</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

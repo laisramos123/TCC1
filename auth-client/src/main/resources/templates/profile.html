@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Perfil do Usuário</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <h1>Perfil do Usuário</h1>
+    <div>
+        <h2>Informações do Usuário:</h2>
+        <div th:if="${userInfo}">
+            <table border="1">
+                <tr>
+                    <th>Atributo</th>
+                    <th>Valor</th>
+                </tr>
+                <tr th:each="info : ${userInfo}">
+                    <td th:text="${info.key}">Key</td>
+                    <td th:text="${info.value}">Value</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div>
+            <a href="/home">Voltar para Home</a>
+            
+            <form th:action="@{/logout}" method="post" style="display: inline-block;">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
