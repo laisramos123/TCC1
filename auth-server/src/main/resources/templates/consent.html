@@ -1,23 +1,484 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Login</title>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorização de Consentimento - Open Finance Brasil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .consent-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            max-width: 700px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .consent-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .consent-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .consent-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .consent-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .consent-content {
+            padding: 40px 30px;
+        }
+
+        .client-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #007bff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .client-info h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .client-info p {
+            margin-bottom: 8px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .client-info strong {
+            color: #2c3e50;
+        }
+
+        .permissions-section {
+            margin-bottom: 30px;
+        }
+
+        .permissions-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 22px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .permission-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #2196f3;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .permission-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
+            border-left-color: #1976d2;
+        }
+
+        .permission-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #2196f3, #9c27b0);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .permission-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .permission-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .permission-title {
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .permission-description {
+            color: #495057;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .warning-section {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .warning-section h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .warning-section p {
+            color: #6c5720;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .consent-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .consent-btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            min-width: 180px;
+        }
+
+        .consent-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+
+        .consent-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-approve:hover {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6);
+        }
+
+        .btn-deny {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-deny:hover {
+            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.6);
+        }
+
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer-info p {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #d4edda;
+            color: #155724;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 15px;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Debug Section - Remover em produção */
+        .debug-info {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: monospace;
+            border: 1px dashed #999;
+        }
+
+        .debug-info h5 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .debug-info p {
+            margin: 3px 0;
+            color: #333;
+        }
+
+        .debug-info .label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .consent-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .consent-content {
+                padding: 25px 20px;
+            }
+            
+            .permissions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .consent-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .consent-btn {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
-    <form th:action="@{/login}" method="post">
-        <div>
-            <label for="username">Usuário:</label>
-            <input type="text" id="username" name="username" />
+    <div class="consent-container">
+        <div class="consent-header">
+            <span class="icon">🏦</span>
+            <h1>Open Finance Brasil</h1>
+            <p>Solicitação de Autorização de Acesso</p>
         </div>
-        <div>
-            <label for="password">Senha:</label>
-            <input type="password" id="password" name="password" />
+        
+        <div class="consent-content">
+            <div class="client-info">
+                <h3>🏢 Informações da Aplicação</h3>
+                <p><strong>Nome do Cliente:</strong> <span th:text="${clientName}">Nome do Cliente</span></p>
+                <p><strong>ID do Cliente:</strong> <span th:text="${clientId}">client-id</span></p>
+                <p><strong>ID do Consentimento:</strong> <span th:text="${consentId}">consent-id</span></p>
+                <p><strong>Data da Solicitação:</strong> <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm:ss')}">Data atual</span></p>
+            </div>
+
+            <div class="permissions-section">
+                <h3>🔐 Permissões Solicitadas</h3>
+                <p style="text-align: center; color: #6c757d; margin-bottom: 25px;">
+                    A aplicação está solicitando acesso às seguintes informações e serviços:
+                </p>
+                
+                <div class="permissions-grid">
+                    <div th:each="scope : ${scopes}" class="permission-card">
+                        <span class="permission-icon" th:switch="${scope}">
+                            <span th:case="'openid'">🆔</span>
+                            <span th:case="'profile'">👤</span>
+                            <span th:case="'email'">📧</span>
+                            <span th:case="'accounts'">🏦</span>
+                            <span th:case="'credit-cards-accounts'">💳</span>
+                            <span th:case="'loans'">🏠</span>
+                            <span th:case="'financings'">🏗️</span>
+                            <span th:case="'invoice-financings'">📋</span>
+                            <span th:case="'unarranged-accounts-overdraft'">⚠️</span>
+                            <span th:case="*">🔑</span>
+                        </span>
+                        <div class="permission-title" th:switch="${scope}">
+                            <span th:case="'openid'">Identificação Básica</span>
+                            <span th:case="'profile'">Informações do Perfil</span>
+                            <span th:case="'email'">Endereço de Email</span>
+                            <span th:case="'accounts'">Dados de Contas Correntes e Poupança</span>
+                            <span th:case="'credit-cards-accounts'">Dados de Cartões de Crédito</span>
+                            <span th:case="'loans'">Dados de Empréstimos</span>
+                            <span th:case="'financings'">Dados de Financiamentos</span>
+                            <span th:case="'invoice-financings'">Antecipação de Recebíveis</span>
+                            <span th:case="'unarranged-accounts-overdraft'">Adiantamento a Depositantes</span>
+                            <span th:case="*" th:text="${scope}">Permissão Personalizada</span>
+                        </div>
+                        <div class="permission-description" th:switch="${scope}">
+                            <span th:case="'openid'">Acesso à sua identificação única no sistema</span>
+                            <span th:case="'profile'">Nome, CPF e informações básicas do perfil</span>
+                            <span th:case="'email'">Seu endereço de email principal</span>
+                            <span th:case="'accounts'">Saldos, extratos e informações de contas</span>
+                            <span th:case="'credit-cards-accounts'">Limites, faturas e transações de cartões</span>
+                            <span th:case="'loans'">Contratos e prestações de empréstimos</span>
+                            <span th:case="'financings'">Contratos de financiamento de bens</span>
+                            <span th:case="'invoice-financings'">Operações de antecipação de recebíveis</span>
+                            <span th:case="'unarranged-accounts-overdraft'">Informações sobre cheque especial</span>
+                            <span th:case="*">Acesso a funcionalidade específica</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warning-section">
+                <h4>⚠️ Importante - Proteção de Dados</h4>
+                <p>
+                    Ao autorizar, você concorda que a aplicação tenha acesso às informações selecionadas 
+                    conforme as regulamentações do <strong>Open Finance Brasil</strong> e a <strong>LGPD</strong>. 
+                    Você pode revogar este consentimento a qualquer momento.
+                </p>
+            </div>
+
+            <form method="post" th:action="@{/oauth2/consent}">
+                <!-- CSRF Token (se habilitado) -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf}"/>
+                
+                <!-- ✅ PARÂMETROS CORRIGIDOS - Nomes que coincidem com o controller -->
+                <!-- PRINCIPAL: consentId (não consent_id) -->
+                <input type="hidden" name="consentId" th:value="${consentId}"/>
+                
+                <!-- Parâmetros OAuth2 essenciais -->
+                <input type="hidden" name="client_id" th:value="${clientId}"/>
+                <input type="hidden" name="state" th:value="${state}"/>
+                
+                <!-- Parâmetros adicionais (opcionais) -->
+                <input type="hidden" name="redirect_uri" th:value="${redirectUri}" th:if="${redirectUri != null and !#strings.isEmpty(redirectUri)}"/>
+                <input type="hidden" name="response_type" th:value="${responseType}" th:if="${responseType != null and !#strings.isEmpty(responseType)}"/>
+                <input type="hidden" name="nonce" th:value="${nonce}" th:if="${nonce != null and !#strings.isEmpty(nonce)}"/>
+                <input type="hidden" name="scope" th:value="${originalScope}" th:if="${originalScope != null and !#strings.isEmpty(originalScope)}"/>
+                
+                <div class="consent-actions">
+                    <button type="submit" name="action" value="approve" class="consent-btn btn-approve">
+                        ✅ Autorizar Acesso
+                    </button>
+                    <button type="submit" name="action" value="deny" class="consent-btn btn-deny">
+                        ❌ Negar Acesso
+                    </button>
+                </div>
+            </form>
+
+            <!-- Seção de Debug (remover em produção) -->
+            <div class="debug-info">
+                <h5>🔧 Debug Info (Remover em Produção)</h5>
+                <p><span class="label">Client ID:</span> <span th:text="${clientId}">N/A</span></p>
+                <p><span class="label">Consent ID:</span> <span th:text="${consentId}">N/A</span></p>
+                <p><span class="label">State:</span> <span th:text="${state}">N/A</span></p>
+                <p><span class="label">Redirect URI:</span> <span th:text="${redirectUri}">N/A</span></p>
+                <p><span class="label">Nonce:</span> <span th:text="${nonce}">N/A</span></p>
+                <p><span class="label">Original Scope:</span> <span th:text="${originalScope}">N/A</span></p>
+            </div>
+
+            <div class="footer-info">
+                <div class="security-badge">
+                    🔒 Conexão Segura SSL/TLS
+                </div>
+                <p>Esta solicitação está em conformidade com as normas do Banco Central do Brasil</p>
+                <p>© 2025 Open Finance Brasil - Authorization Server</p>
+            </div>
         </div>
-        <div>
-            <button type="submit">Entrar</button>
-        </div>
-    </form>
+    </div>
 </body>
 </html>

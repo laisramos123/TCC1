@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Servidor de Autorização</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Bem-vindo ao Servidor de Autorização OAuth2</h1>
+    
+    <div sec:authorize="isAuthenticated()">
+        <p>Autenticado como: <span sec:authentication="name">Usuário</span></p>
+        <p>Perfil: <span sec:authentication="principal.authorities">Roles</span></p>
+        
+        <h2>Ações</h2>
+        <ul>
+            <li><a href="/profile">Meu Perfil</a></li>
+            <li>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit">Logout</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+    
+    <div sec:authorize="!isAuthenticated()">
+        <p>Você não está autenticado.</p>
+        <a href="/login">Fazer Login</a>
+    </div>
+    
+    <hr>
+    <h3>Informações do Sistema</h3>
+    <p>Este é o servidor de autorização OAuth2 e OpenID Connect.</p>
+    <p>Usado para autenticar usuários e emitir tokens de acesso.</p>
+</body>
+</html>
