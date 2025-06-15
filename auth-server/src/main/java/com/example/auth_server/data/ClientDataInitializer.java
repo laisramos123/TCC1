@@ -31,24 +31,24 @@ public class ClientDataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        logger.info("🚀 Iniciando criação de dados de teste...");
+        logger.info(" Iniciando criacao de dados de teste...");
 
-        // Verificar se o repositório está funcionando
+        // Verificar se o repositorio esta funcionando
         long userCount = userRepository.count();
         long clientCount = clientRepository.count();
 
-        logger.info("📊 Usuários existentes: {}", userCount);
-        logger.info("📊 Clientes existentes: {}", clientCount);
+        logger.info(" Usuarios existentes: {}", userCount);
+        logger.info(" Clientes existentes: {}", clientCount);
 
         createTestUsers();
         createTestClient();
 
-        // Verificar novamente após criação
+        // Verificar novamente apos criacao
         userCount = userRepository.count();
         clientCount = clientRepository.count();
 
-        logger.info("✅ Total de usuários após criação: {}", userCount);
-        logger.info("✅ Total de clientes após criação: {}", clientCount);
+        logger.info(" Total de usuarios apos criacao: {}", userCount);
+        logger.info(" Total de clientes apos criacao: {}", clientCount);
     }
 
     private void createTestUsers() {
@@ -64,11 +64,11 @@ public class ClientDataInitializer implements ApplicationRunner {
                 user.setAuthorities(Set.of("ROLE_USER"));
 
                 User savedUser = userRepository.save(user);
-                logger.info("✅ Usuário 'user' criado com ID: {} | Senha: {}",
+                logger.info(" Usuario 'user' criado com ID: {} | Senha: {}",
                         savedUser.getId(), encodedPassword);
             } else {
                 User existingUser = userRepository.findByUsername("user").get();
-                logger.info("ℹ️ Usuário 'user' já existe com ID: {}", existingUser.getId());
+                logger.info("Usuario 'user' ja existe com ID: {}", existingUser.getId());
             }
 
             if (userRepository.findByUsername("admin").isEmpty()) {
@@ -82,10 +82,10 @@ public class ClientDataInitializer implements ApplicationRunner {
                 admin.setAuthorities(Set.of("ROLE_USER", "ROLE_ADMIN"));
 
                 User savedAdmin = userRepository.save(admin);
-                logger.info("✅ Usuário 'admin' criado com ID: {}", savedAdmin.getId());
+                logger.info("Usuario 'admin' criado com ID: {}", savedAdmin.getId());
             }
         } catch (Exception e) {
-            logger.error("❌ Erro ao criar usuários: {}", e.getMessage(), e);
+            logger.error("Erro ao criar usuarios: {}", e.getMessage(), e);
         }
     }
 
@@ -106,10 +106,10 @@ public class ClientDataInitializer implements ApplicationRunner {
                         "authorization_code", "refresh_token"));
 
                 Client savedClient = clientRepository.save(client);
-                logger.info("✅ Cliente OAuth criado com ID: {}", savedClient.getId());
+                logger.info(" Cliente OAuth criado com ID: {}", savedClient.getId());
             }
         } catch (Exception e) {
-            logger.error("❌ Erro ao criar cliente: {}", e.getMessage(), e);
+            logger.error(" Erro ao criar cliente: {}", e.getMessage(), e);
         }
     }
 }

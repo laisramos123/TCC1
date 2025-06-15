@@ -25,17 +25,17 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.info("🔍 TENTATIVA DE LOGIN - Usuário: {}", username);
+        logger.info("  TENTATIVA DE LOGIN - Usuario: {}", username);
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    logger.error("❌ USUÁRIO NÃO ENCONTRADO: {}", username);
-                    return new UsernameNotFoundException("Usuário não encontrado: " + username);
+                    logger.error(" USUARIO NÃO ENCONTRADO: {}", username);
+                    return new UsernameNotFoundException("Usuario não encontrado: " + username);
                 });
 
-        logger.info("✅ USUÁRIO ENCONTRADO: {} | Enabled: {} | Password hash: {}",
+        logger.info(" USUARIO ENCONTRADO: {} | Enabled: {} | Password hash: {}",
                 user.getUsername(), user.isEnabled(), user.getPassword());
-        logger.info("🔑 AUTHORITIES do usuário: {}", user.getAuthorities());
+        logger.info("AUTHORITIES do usuario: {}", user.getAuthorities());
 
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
@@ -48,7 +48,7 @@ public class UserService implements UserDetailsService {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toSet()));
 
-        logger.info("🎯 UserDetails criado - Username: {} | Enabled: {} | Authorities: {}",
+        logger.info(" UserDetails criado - Username: {} | Enabled: {} | Authorities: {}",
                 userDetails.getUsername(), userDetails.isEnabled(), userDetails.getAuthorities());
 
         return userDetails;

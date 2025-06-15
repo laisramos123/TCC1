@@ -81,6 +81,7 @@ public class AuthServerConfig {
                         .requestMatchers("/oauth2/consent").authenticated()
                         .requestMatchers("/login", "/error", "/").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/webjars/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")

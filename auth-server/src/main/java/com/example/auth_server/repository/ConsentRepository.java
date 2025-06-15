@@ -14,25 +14,25 @@ public interface ConsentRepository extends JpaRepository<Consent, Long> {
     Consent findByConsentId(String consentId);
 
     /**
-     * Busca o último consentimento com status específico para um usuário e cliente
-     * Ordenado por data de criação (mais recente primeiro)
+     * Busca o ultimo consentimento com status especifico para um usuario e cliente
+     * Ordenado por data de criacão (mais recente primeiro)
      */
     Consent findTopByUserIdAndClientIdAndStatusOrderByCreatedAtDesc(
             String userId, String clientId, String status);
 
     /**
-     * Busca consentimentos por usuário, cliente e lista de status
+     * Busca consentimentos por usuario, cliente e lista de status
      */
     List<Consent> findByUserIdAndClientIdAndStatusIn(
             String userId, String clientId, List<String> statuses);
 
     /**
-     * Busca todos os consentimentos de um usuário ordenados por data de criação
+     * Busca todos os consentimentos de um usuario ordenados por data de criacão
      */
     List<Consent> findByUserIdOrderByCreatedAtDesc(String userId);
 
     /**
-     * Busca consentimentos ativos (não revogados) de um usuário
+     * Busca consentimentos ativos (não revogados) de um usuario
      */
     List<Consent> findByUserIdAndRevokedAtIsNullOrderByCreatedAtDesc(String userId);
 
@@ -42,12 +42,12 @@ public interface ConsentRepository extends JpaRepository<Consent, Long> {
     List<Consent> findByClientIdOrderByCreatedAtDesc(String clientId);
 
     /**
-     * Busca consentimentos de um usuário para um cliente específico
+     * Busca consentimentos de um usuario para um cliente especifico
      */
     List<Consent> findByUserIdAndClientIdOrderByCreatedAtDesc(String userId, String clientId);
 
     /**
-     * Conta quantos consentimentos com status específico um usuário tem para um
+     * Conta quantos consentimentos com status especifico um usuario tem para um
      * cliente
      */
     long countByUserIdAndClientIdAndStatus(String userId, String clientId, String status);
@@ -72,7 +72,7 @@ public interface ConsentRepository extends JpaRepository<Consent, Long> {
             @Param("status") String status);
 
     /**
-     * Busca consentimentos autorizados e válidos para um cliente
+     * Busca consentimentos autorizados e validos para um cliente
      */
     @Query("SELECT c FROM Consent c WHERE c.clientId = :clientId AND c.status = :status AND " +
             "(c.expiresAt IS NULL OR c.expiresAt > :now) AND c.revokedAt IS NULL")
@@ -82,7 +82,7 @@ public interface ConsentRepository extends JpaRepository<Consent, Long> {
             @Param("now") LocalDateTime now);
 
     /**
-     * Busca consentimentos de um usuário que incluem uma permissão específica
+     * Busca consentimentos de um usuario que incluem uma permissão especifica
      */
     @Query("SELECT c FROM Consent c JOIN c.permissions p WHERE c.userId = :userId AND p = :permission")
     List<Consent> findByUserIdAndPermission(@Param("userId") String userId, @Param("permission") String permission);
@@ -98,7 +98,7 @@ public interface ConsentRepository extends JpaRepository<Consent, Long> {
     List<Consent> findByStatusAndCreatedAtAfter(String status, LocalDateTime createdAfter);
 
     /**
-     * Verifica se existe consentimento ativo para usuário/cliente/permissão
+     * Verifica se existe consentimento ativo para usuario/cliente/permissão
      */
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Consent c " +
             "JOIN c.permissions p WHERE c.userId = :userId AND c.clientId = :clientId AND " +
@@ -116,13 +116,13 @@ public interface ConsentRepository extends JpaRepository<Consent, Long> {
     void deleteByCreatedAtBeforeAndStatusIn(LocalDateTime createdBefore, List<String> statuses);
 
     /**
-     * Estatísticas de consentimentos por cliente
+     * Estatisticas de consentimentos por cliente
      */
     @Query("SELECT c.clientId, COUNT(c) FROM Consent c GROUP BY c.clientId")
     List<Object[]> getConsentCountByClient();
 
     /**
-     * Estatísticas de consentimentos por status
+     * Estatisticas de consentimentos por status
      */
     @Query("SELECT c.status, COUNT(c) FROM Consent c GROUP BY c.status")
     List<Object[]> getConsentCountByStatus();

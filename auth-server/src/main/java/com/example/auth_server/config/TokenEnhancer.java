@@ -28,25 +28,25 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
         String clientId = context.getRegisteredClient().getClientId();
 
         System.out.println("🎫 Personalizando token JWT:");
-        System.out.println("  - Usuário: " + username);
+        System.out.println("  - Usuario: " + username);
         System.out.println("  - Cliente: " + clientId);
         System.out.println("  - Token Type: " + context.getTokenType().getValue());
 
-        // ✅ Informações básicas do token
+        // ✅ Informacões basicas do token
         context.getClaims().claim("client_id", clientId);
         context.getClaims().claim("username", username);
         context.getClaims().claim("iss", "http://localhost:8080");
 
-        // ✅ Timestamp de criação
+        // ✅ Timestamp de criacao
         context.getClaims().claim("iat", Instant.now().getEpochSecond());
 
-        // ✅ Buscar consentimentos do usuário usando o método correto
+        // ✅ Buscar consentimentos do usuario usando o método correto
         List<Consent> userConsents = consentService.findUserConsents(username);
         System.out.println("  - Total de consentimentos encontrados: " + userConsents.size());
 
         // ✅ Filtrar consentimentos ativos para este cliente
         List<Consent> activeConsents = userConsents.stream()
-                .filter(consent -> clientId.equals(consent.getClientId()))
+                .filter(consent -> clientId.equals(consent.getClient_id()))
                 .filter(consent -> ConsentService.STATUS_AUTHORIZED.equals(consent.getStatus()))
                 .filter(consent -> consentService.isConsentValid(consent))
                 .collect(Collectors.toList());
@@ -62,7 +62,7 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
             if (latestConsent != null) {
                 System.out.println("  - Usando consentimento: " + latestConsent.getConsentId());
 
-                // ✅ Adicionar informações do consentimento ao token
+                // ✅ Adicionar informacões do consentimento ao token
                 context.getClaims().claim("consent_id", latestConsent.getConsentId());
                 context.getClaims().claim("permissions", latestConsent.getPermissions());
 
@@ -77,7 +77,7 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
                             latestConsent.getExpiresAt().toInstant(ZoneOffset.UTC).getEpochSecond());
                 }
 
-                // ✅ Adicionar informações específicas do Open Finance Brasil
+                // ✅ Adicionar informacões especificas do Open Finance Brasil
                 addOpenFinanceClaims(context, latestConsent);
 
                 // ✅ Adicionar scopes baseados nas permissões
@@ -88,16 +88,16 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
         } else {
             System.out.println("  - ⚠️ Nenhum consentimento ativo encontrado para o cliente");
 
-            // ✅ Adicionar claims mínimos mesmo sem consentimento
+            // ✅ Adicionar claims minimos mesmo sem consentimento
             context.getClaims().claim("consent_status", "no_active_consent");
         }
 
-        // ✅ Adicionar informações do contexto da autorização
+        // ✅ Adicionar informacões do contexto da autorizacao
         if (context.getAuthorizationGrantType() != null) {
             context.getClaims().claim("grant_type", context.getAuthorizationGrantType().getValue());
         }
 
-        // ✅ Adicionar informações do registered client
+        // ✅ Adicionar informacões do registered client
         if (context.getRegisteredClient() != null) {
             context.getClaims().claim("client_name", context.getRegisteredClient().getClientName());
         }
@@ -105,26 +105,26 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
         // ✅ Adicionar identificador único do token
         context.getClaims().claim("jti", java.util.UUID.randomUUID().toString());
 
-        // ✅ Adicionar informações de compliance do Open Finance
+        // ✅ Adicionar informacões de compliance do Open Finance
         addComplianceClaims(context);
 
         System.out.println("✅ Token personalizado com sucesso");
     }
 
     /**
-     * Adiciona claims específicos do Open Finance Brasil
+     * Adiciona claims especificos do Open Finance Brasil
      */
     private void addOpenFinanceClaims(JwtEncodingContext context, Consent consent) {
         System.out.println("🏦 Adicionando claims do Open Finance Brasil");
 
-        // Identificador do participante (sua instituição)
+        // Identificador do participante (sua instituicao)
         context.getClaims().claim("org_id", "your-org-id");
         context.getClaims().claim("org_name", "Your Bank Name");
 
-        // Versão da API do Open Finance
+        // Versao da API do Open Finance
         context.getClaims().claim("openbanking_api_version", "2.0.1");
 
-        // Informações de compliance
+        // Informacões de compliance
         context.getClaims().claim("regulatory_environment", "production"); // ou "sandbox"
 
         // Categorizar permissões por tipo de dado
@@ -142,7 +142,7 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
             context.getClaims().claim("has_transaction_access", true);
         }
 
-        // Adicionar informações de auditoria
+        // Adicionar informacões de auditoria
         context.getClaims().claim("consent_channel", "web");
         context.getClaims().claim("consent_method", "explicit_approval");
     }
@@ -153,7 +153,7 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
     private void addScopeBasedClaims(JwtEncodingContext context, Set<String> permissions) {
         System.out.println("🔐 Adicionando claims baseados em permissões");
 
-        // Informações de perfil
+        // Informacões de perfil
         if (permissions.contains("profile")) {
             context.getClaims().claim("profile_access", true);
         }
@@ -162,17 +162,17 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
             context.getClaims().claim("email_access", true);
         }
 
-        // Determinar nível de acesso
+        // Determinar nivel de acesso
         String accessLevel = determineAccessLevel(permissions);
         context.getClaims().claim("access_level", accessLevel);
 
-        // Adicionar lista de recursos acessíveis
+        // Adicionar lista de recursos acessiveis
         Set<String> accessibleResources = mapPermissionsToResources(permissions);
         context.getClaims().claim("accessible_resources", accessibleResources);
     }
 
     /**
-     * Determina o nível de acesso baseado nas permissões
+     * Determina o nivel de acesso baseado nas permissões
      */
     private String determineAccessLevel(Set<String> permissions) {
         if (permissions.contains("accounts") && permissions.contains("credit-cards-accounts")) {
@@ -187,7 +187,7 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
     }
 
     /**
-     * Mapeia permissões para recursos específicos
+     * Mapeia permissões para recursos especificos
      */
     private Set<String> mapPermissionsToResources(Set<String> permissions) {
         return permissions.stream()
@@ -196,7 +196,7 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
     }
 
     /**
-     * Mapeia uma permissão individual para um recurso
+     * Mapeia uma permissao individual para um recurso
      */
     private String mapPermissionToResource(String permission) {
         switch (permission) {
@@ -230,15 +230,15 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
         // Timestamp para auditoria
         context.getClaims().claim("token_issued_at", Instant.now().toString());
 
-        // Informações de segurança
+        // Informacões de seguranca
         context.getClaims().claim("security_profile", "FAPI-R");
         context.getClaims().claim("token_endpoint_auth_method", "client_secret_basic");
 
-        // Informações de compliance LGPD
+        // Informacões de compliance LGPD
         context.getClaims().claim("lgpd_compliant", true);
         context.getClaims().claim("data_sharing_agreement", "v2.0");
 
-        // Identificador da sessão de autorização
+        // Identificador da sessao de autorizacao
         context.getClaims().claim("auth_session_id", java.util.UUID.randomUUID().toString());
     }
 }

@@ -23,7 +23,7 @@ public class ConsentService {
     public static final String STATUS_REJECTED = "REJECTED";
     public static final String STATUS_REVOKED = "REVOKED";
 
-    // Período padrão de expiração (12 meses conforme Open Finance Brasil)
+    // Periodo padrão de expiracão (12 meses conforme Open Finance Brasil)
     private static final int DEFAULT_EXPIRATION_MONTHS = 12;
 
     @Autowired
@@ -33,20 +33,20 @@ public class ConsentService {
      * Cria um novo consentimento
      */
     public Consent createConsent(String userId, String clientId, Set<String> permissions) {
-        System.out.println("📝 Criando novo consentimento para usuário: " + userId + ", cliente: " + clientId);
+        System.out.println("Criando novo consentimento para usuario: " + userId + ", cliente: " + clientId);
 
-        // Verificar se já existe consentimento pendente para este
-        // usuário/cliente/permissões
+        // Verificar se ja existe consentimento pendente para este
+        // usuario/cliente/permissões
         Consent existingConsent = findValidConsent(userId, clientId, permissions);
         if (existingConsent != null && STATUS_AWAITING_AUTHORIZATION.equals(existingConsent.getStatus())) {
-            System.out.println("✅ Reutilizando consentimento existente: " + existingConsent.getConsentId());
+            System.out.println(" Reutilizando consentimento existente: " + existingConsent.getConsentId());
             return existingConsent;
         }
 
         Consent consent = new Consent();
         consent.setConsentId(generateConsentId());
         consent.setUserId(userId);
-        consent.setClientId(clientId);
+        consent.setClient_id(clientId);
         consent.setPermissions(permissions);
         consent.setStatus(STATUS_AWAITING_AUTHORIZATION);
         consent.setCreatedAt(LocalDateTime.now());
@@ -54,7 +54,7 @@ public class ConsentService {
 
         Consent savedConsent = consentRepository.save(consent);
 
-        System.out.println("✅ Consentimento criado com sucesso:");
+        System.out.println("Consentimento criado com sucesso:");
         System.out.println("   - ID: " + savedConsent.getConsentId());
         System.out.println("   - Status: " + savedConsent.getStatus());
         System.out.println("   - Expira em: " + savedConsent.getExpiresAt());
@@ -67,40 +67,40 @@ public class ConsentService {
      * Busca consentimento por consentId
      */
     public Consent findByConsentId(String consentId) {
-        System.out.println("🔍 Buscando consentimento por ID: " + consentId);
+        System.out.println("Buscando consentimento por ID: " + consentId);
         return consentRepository.findByConsentId(consentId);
     }
 
     /**
-     * Busca o último consentimento AWAITING_AUTHORIZATION para um usuário e cliente
-     * específicos
+     * Busca o último consentimento AWAITING_AUTHORIZATION para um usuario e cliente
+     * especificos
      */
     public Consent findLatestPendingConsent(String userId, String clientId) {
         System.out.println(
-                "🔍 Buscando último consentimento pendente para usuário: " + userId + ", cliente: " + clientId);
+                "Buscando ultimo consentimento pendente para usuario: " + userId + ", cliente: " + clientId);
         return consentRepository.findTopByUserIdAndClientIdAndStatusOrderByCreatedAtDesc(
                 userId, clientId, STATUS_AWAITING_AUTHORIZATION);
     }
 
     /**
-     * Busca consentimento válido existente (AWAITING_AUTHORIZATION ou AUTHORIZED)
+     * Busca consentimento valido existente (AWAITING_AUTHORIZATION ou AUTHORIZED)
      */
     public Consent findValidConsent(String userId, String clientId, Set<String> permissions) {
-        System.out.println("🔍 Buscando consentimento válido para usuário: " + userId + ", cliente: " + clientId);
+        System.out.println("Buscando consentimento valido para usuario: " + userId + ", cliente: " + clientId);
 
         List<String> validStatuses = List.of(STATUS_AWAITING_AUTHORIZATION, STATUS_AUTHORIZED);
         List<Consent> consents = consentRepository.findByUserIdAndClientIdAndStatusIn(
                 userId, clientId, validStatuses);
 
-        // Verificar se algum consentimento tem as permissões necessárias e não expirou
+        // Verificar se algum consentimento tem as permissões necessarias e não expirou
         for (Consent consent : consents) {
             if (isConsentValid(consent) && consent.getPermissions().containsAll(permissions)) {
-                System.out.println("✅ Consentimento válido encontrado: " + consent.getConsentId());
+                System.out.println(" Consentimento valido encontrado: " + consent.getConsentId());
                 return consent;
             }
         }
 
-        System.out.println("❌ Nenhum consentimento válido encontrado");
+        System.out.println("Nenhum consentimento valido encontrado");
         return null;
     }
 
@@ -108,7 +108,7 @@ public class ConsentService {
      * Aprova um consentimento
      */
     public void approveConsent(String consentId) {
-        System.out.println("✅ Aprovando consentimento: " + consentId);
+        System.out.println(" Aprovando consentimento: " + consentId);
 
         Consent consent = consentRepository.findByConsentId(consentId);
         if (consent == null) {
@@ -116,7 +116,7 @@ public class ConsentService {
         }
 
         if (!STATUS_AWAITING_AUTHORIZATION.equals(consent.getStatus())) {
-            throw new RuntimeException("Consentimento não está pendente de aprovação: " + consentId +
+            throw new RuntimeException("Consentimento não esta pendente de aprovacão: " + consentId +
                     " (Status atual: " + consent.getStatus() + ")");
         }
 
@@ -127,14 +127,14 @@ public class ConsentService {
         consent.setStatus(STATUS_AUTHORIZED);
         consentRepository.save(consent);
 
-        System.out.println("✅ Consentimento aprovado com sucesso: " + consentId);
+        System.out.println(" Consentimento aprovado com sucesso: " + consentId);
     }
 
     /**
      * Nega um consentimento
      */
     public void denyConsent(String consentId) {
-        System.out.println("❌ Negando consentimento: " + consentId);
+        System.out.println(" Negando consentimento: " + consentId);
 
         Consent consent = consentRepository.findByConsentId(consentId);
         if (consent == null) {
@@ -142,7 +142,7 @@ public class ConsentService {
         }
 
         if (!STATUS_AWAITING_AUTHORIZATION.equals(consent.getStatus())) {
-            throw new RuntimeException("Consentimento não está pendente de aprovação: " + consentId +
+            throw new RuntimeException("Consentimento não esta pendente de aprovacão: " + consentId +
                     " (Status atual: " + consent.getStatus() + ")");
         }
 
@@ -150,14 +150,14 @@ public class ConsentService {
         consent.setRevokedAt(LocalDateTime.now());
         consentRepository.save(consent);
 
-        System.out.println("❌ Consentimento negado: " + consentId);
+        System.out.println(" Consentimento negado: " + consentId);
     }
 
     /**
      * Revoga um consentimento autorizado
      */
     public void revokeConsent(String consentId) {
-        System.out.println("🔄 Revogando consentimento: " + consentId);
+        System.out.println(" Revogando consentimento: " + consentId);
 
         Consent consent = consentRepository.findByConsentId(consentId);
         if (consent == null) {
@@ -173,22 +173,22 @@ public class ConsentService {
         consent.setRevokedAt(LocalDateTime.now());
         consentRepository.save(consent);
 
-        System.out.println("✅ Consentimento revogado: " + consentId);
+        System.out.println(" Consentimento revogado: " + consentId);
     }
 
     /**
-     * Lista todos os consentimentos de um usuário
+     * Lista todos os consentimentos de um usuario
      */
     public List<Consent> findUserConsents(String userId) {
-        System.out.println("📋 Listando consentimentos do usuário: " + userId);
+        System.out.println(" Listando consentimentos do usuario: " + userId);
         return consentRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
     /**
-     * Lista consentimentos ativos (não revogados) de um usuário
+     * Lista consentimentos ativos (não revogados) de um usuario
      */
     public List<Consent> findActiveUserConsents(String userId) {
-        System.out.println("📋 Listando consentimentos ativos do usuário: " + userId);
+        System.out.println(" Listando consentimentos ativos do usuario: " + userId);
         return consentRepository.findByUserIdAndRevokedAtIsNullOrderByCreatedAtDesc(userId);
     }
 
@@ -196,19 +196,19 @@ public class ConsentService {
      * Lista todos os consentimentos de um cliente (TPP)
      */
     public List<Consent> findClientConsents(String clientId) {
-        System.out.println("📋 Listando consentimentos do cliente: " + clientId);
+        System.out.println(" Listando consentimentos do cliente: " + clientId);
         return consentRepository.findByClientIdOrderByCreatedAtDesc(clientId);
     }
 
     /**
-     * Conta quantos consentimentos pendentes um usuário tem para um cliente
+     * Conta quantos consentimentos pendentes um usuario tem para um cliente
      */
     public long countPendingConsents(String userId, String clientId) {
         return consentRepository.countByUserIdAndClientIdAndStatus(userId, clientId, STATUS_AWAITING_AUTHORIZATION);
     }
 
     /**
-     * Verifica se um consentimento ainda é válido (não expirou)
+     * Verifica se um consentimento ainda é valido (não expirou)
      */
     public boolean isConsentValid(Consent consent) {
         if (consent == null) {
@@ -220,7 +220,7 @@ public class ConsentService {
             return false;
         }
 
-        // Verifica se está rejeitado
+        // Verifica se esta rejeitado
         if (STATUS_REJECTED.equals(consent.getStatus()) || STATUS_REVOKED.equals(consent.getStatus())) {
             return false;
         }
@@ -234,7 +234,7 @@ public class ConsentService {
     }
 
     /**
-     * Verifica se um consentimento está autorizado e válido
+     * Verifica se um consentimento esta autorizado e valido
      */
     public boolean isConsentAuthorizedAndValid(String consentId) {
         Consent consent = findByConsentId(consentId);
@@ -247,7 +247,7 @@ public class ConsentService {
      * Limpa consentimentos expirados automaticamente
      */
     public void cleanupExpiredConsents() {
-        System.out.println("🧹 Limpando consentimentos expirados...");
+        System.out.println(" Limpando consentimentos expirados...");
 
         LocalDateTime now = LocalDateTime.now();
         List<Consent> expiredConsents = consentRepository.findByExpiresAtBeforeAndStatusNot(now, STATUS_REVOKED);
@@ -257,11 +257,11 @@ public class ConsentService {
                 consent.setStatus(STATUS_REVOKED);
                 consent.setRevokedAt(now);
                 consentRepository.save(consent);
-                System.out.println("⏰ Consentimento expirado revogado: " + consent.getConsentId());
+                System.out.println(" Consentimento expirado revogado: " + consent.getConsentId());
             }
         }
 
-        System.out.println("✅ Limpeza concluída. " + expiredConsents.size() + " consentimentos processados.");
+        System.out.println(" Limpeza concluida. " + expiredConsents.size() + " consentimentos processados.");
     }
 
     /**
@@ -275,7 +275,7 @@ public class ConsentService {
      * Valida permissões de acordo com Open Finance Brasil
      */
     public boolean validatePermissions(Set<String> permissions) {
-        // Permissões válidas do Open Finance Brasil
+        // Permissões validas do Open Finance Brasil
         Set<String> validPermissions = Set.of(
                 "openid", "profile", "email",
                 "accounts", "credit-cards-accounts",
@@ -286,7 +286,7 @@ public class ConsentService {
     }
 
     /**
-     * Estatísticas de consentimentos
+     * Estatisticas de consentimentos
      */
     public ConsentStats getConsentStats() {
         long total = consentRepository.count();
@@ -298,7 +298,7 @@ public class ConsentService {
         return new ConsentStats(total, authorized, pending, rejected, revoked);
     }
 
-    // Classe interna para estatísticas
+    // Classe interna para estatisticas
     public static class ConsentStats {
         private final long total;
         private final long authorized;

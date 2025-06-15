@@ -26,7 +26,7 @@ public class Consent {
 
     private String userId; // Usuário que deu o consentimento
 
-    private String clientId; // TPP que recebeu o consentimento
+    private String client_id;// TPP que recebeu o consentimento
 
     private LocalDateTime createdAt;
 

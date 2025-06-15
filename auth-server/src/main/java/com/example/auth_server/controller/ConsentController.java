@@ -2,6 +2,7 @@ package com.example.auth_server.controller;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/consents")
 @Validated
+@Profile("consent-management")
 public class ConsentController {
 
     private final ConsentService consentService;
@@ -36,19 +38,19 @@ public class ConsentController {
     @PostMapping
     public ResponseEntity<ConsentResponse> createConsent(@Valid @RequestBody CreateConsentRequest request) {
         try {
-            System.out.println("📝 API: Criando novo consentimento via REST API");
+            System.out.println(" API: Criando novo consentimento via REST API");
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication.getName();
 
-            System.out.println("  - Usuário: " + userId);
+            System.out.println("  - Usuario: " + userId);
             System.out.println("  - Cliente: " + request.getClientId());
             System.out.println("  - Permissões: " + request.getPermissions());
 
             // Validar permissões
             if (!consentService.validatePermissions(request.getPermissions())) {
                 return ResponseEntity.badRequest()
-                        .body(new ConsentResponse(null, "Permissões inválidas", request.getPermissions()));
+                        .body(new ConsentResponse(null, "Permissões invalidas", request.getPermissions()));
             }
 
             // Criar consentimento
@@ -56,18 +58,18 @@ public class ConsentController {
 
             ConsentResponse response = new ConsentResponse(consent, "Consentimento criado com sucesso", null);
 
-            System.out.println("✅ API: Consentimento criado - ID: " + consent.getConsentId());
+            System.out.println("API: Consentimento criado - ID: " + consent.getConsentId());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         } catch (Exception e) {
-            System.err.println("❌ API: Erro ao criar consentimento: " + e.getMessage());
+            System.err.println(" API: Erro ao criar consentimento: " + e.getMessage());
             return ResponseEntity.badRequest()
                     .body(new ConsentResponse(null, "Erro ao criar consentimento: " + e.getMessage(), null));
         }
     }
 
     /**
-     * Lista todos os consentimentos do usuário logado
+     * Lista todos os consentimentos do usuario logado
      * GET /api/consents
      */
     @GetMapping
@@ -76,7 +78,7 @@ public class ConsentController {
             @RequestParam(value = "clientId", required = false) String clientId) {
 
         try {
-            System.out.println("📋 API: Listando consentimentos do usuário");
+            System.out.println("API: Listando consentimentos do usuario");
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication.getName();
@@ -94,32 +96,32 @@ public class ConsentController {
             // Filtrar por cliente se especificado
             if (clientId != null && !clientId.trim().isEmpty()) {
                 consents = consents.stream()
-                        .filter(c -> clientId.equals(c.getClientId()))
+                        .filter(c -> clientId.equals(c.getClient_id()))
                         .toList();
             }
 
-            // Converter para resumo (sem informações sensíveis)
+            // Converter para resumo (sem informacões sensiveis)
             List<ConsentSummary> summaries = consents.stream()
                     .map(this::toConsentSummary)
                     .toList();
 
-            System.out.println("✅ API: Retornando " + summaries.size() + " consentimentos");
+            System.out.println(" API: Retornando " + summaries.size() + " consentimentos");
             return ResponseEntity.ok(summaries);
 
         } catch (Exception e) {
-            System.err.println("❌ API: Erro ao listar consentimentos: " + e.getMessage());
+            System.err.println("API: Erro ao listar consentimentos: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
         }
     }
 
     /**
-     * Busca um consentimento específico por ID
+     * Busca um consentimento especifico por ID
      * GET /api/consents/{consentId}
      */
     @GetMapping("/{consentId}")
     public ResponseEntity<ConsentDetailResponse> getConsent(@PathVariable @NotBlank String consentId) {
         try {
-            System.out.println("🔍 API: Buscando consentimento: " + consentId);
+            System.out.println("API: Buscando consentimento: " + consentId);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication.getName();
@@ -127,23 +129,23 @@ public class ConsentController {
             Consent consent = consentService.findByConsentId(consentId);
 
             if (consent == null) {
-                System.out.println("❌ API: Consentimento não encontrado: " + consentId);
+                System.out.println("API: Consentimento não encontrado: " + consentId);
                 return ResponseEntity.notFound().build();
             }
 
-            // Verificar se o consentimento pertence ao usuário logado
+            // Verificar se o consentimento pertence ao usuario logado
             if (!consent.getUserId().equals(userId)) {
-                System.out.println("❌ API: Acesso negado ao consentimento: " + consentId);
+                System.out.println("API: Acesso negado ao consentimento: " + consentId);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
             ConsentDetailResponse response = toConsentDetailResponse(consent);
 
-            System.out.println("✅ API: Consentimento encontrado: " + consentId);
+            System.out.println(" API: Consentimento encontrado: " + consentId);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            System.err.println("❌ API: Erro ao buscar consentimento: " + e.getMessage());
+            System.err.println(" API: Erro ao buscar consentimento: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -155,12 +157,12 @@ public class ConsentController {
     @PutMapping("/{consentId}/authorize")
     public ResponseEntity<ConsentResponse> authorizeConsent(@PathVariable @NotBlank String consentId) {
         try {
-            System.out.println("✅ API: Autorizando consentimento: " + consentId);
+            System.out.println("API: Autorizando consentimento: " + consentId);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication.getName();
 
-            // Verificar se o consentimento existe e pertence ao usuário
+            // Verificar se o consentimento existe e pertence ao usuario
             Consent consent = consentService.findByConsentId(consentId);
             if (consent == null) {
                 return ResponseEntity.notFound().build();
@@ -179,15 +181,15 @@ public class ConsentController {
             ConsentResponse response = new ConsentResponse(updatedConsent, "Consentimento autorizado com sucesso",
                     null);
 
-            System.out.println("✅ API: Consentimento autorizado: " + consentId);
+            System.out.println("API: Consentimento autorizado: " + consentId);
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
-            System.err.println("❌ API: Erro ao autorizar consentimento: " + e.getMessage());
+            System.err.println("API: Erro ao autorizar consentimento: " + e.getMessage());
             return ResponseEntity.badRequest()
                     .body(new ConsentResponse(null, "Erro ao autorizar: " + e.getMessage(), null));
         } catch (Exception e) {
-            System.err.println("❌ API: Erro interno ao autorizar consentimento: " + e.getMessage());
+            System.err.println(" API: Erro interno ao autorizar consentimento: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -199,12 +201,12 @@ public class ConsentController {
     @PutMapping("/{consentId}/reject")
     public ResponseEntity<ConsentResponse> rejectConsent(@PathVariable @NotBlank String consentId) {
         try {
-            System.out.println("❌ API: Rejeitando consentimento: " + consentId);
+            System.out.println(" API: Rejeitando consentimento: " + consentId);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication.getName();
 
-            // Verificar se o consentimento existe e pertence ao usuário
+            // Verificar se o consentimento existe e pertence ao usuario
             Consent consent = consentService.findByConsentId(consentId);
             if (consent == null) {
                 return ResponseEntity.notFound().build();
@@ -222,15 +224,15 @@ public class ConsentController {
 
             ConsentResponse response = new ConsentResponse(updatedConsent, "Consentimento rejeitado com sucesso", null);
 
-            System.out.println("❌ API: Consentimento rejeitado: " + consentId);
+            System.out.println(" API: Consentimento rejeitado: " + consentId);
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
-            System.err.println("❌ API: Erro ao rejeitar consentimento: " + e.getMessage());
+            System.err.println("API: Erro ao rejeitar consentimento: " + e.getMessage());
             return ResponseEntity.badRequest()
                     .body(new ConsentResponse(null, "Erro ao rejeitar: " + e.getMessage(), null));
         } catch (Exception e) {
-            System.err.println("❌ API: Erro interno ao rejeitar consentimento: " + e.getMessage());
+            System.err.println(" API: Erro interno ao rejeitar consentimento: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -242,12 +244,12 @@ public class ConsentController {
     @PutMapping("/{consentId}/revoke")
     public ResponseEntity<ConsentResponse> revokeConsent(@PathVariable @NotBlank String consentId) {
         try {
-            System.out.println("🔄 API: Revogando consentimento: " + consentId);
+            System.out.println("API: Revogando consentimento: " + consentId);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication.getName();
 
-            // Verificar se o consentimento existe e pertence ao usuário
+            // Verificar se o consentimento existe e pertence ao usuario
             Consent consent = consentService.findByConsentId(consentId);
             if (consent == null) {
                 return ResponseEntity.notFound().build();
@@ -265,15 +267,15 @@ public class ConsentController {
 
             ConsentResponse response = new ConsentResponse(updatedConsent, "Consentimento revogado com sucesso", null);
 
-            System.out.println("✅ API: Consentimento revogado: " + consentId);
+            System.out.println("API: Consentimento revogado: " + consentId);
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
-            System.err.println("❌ API: Erro ao revogar consentimento: " + e.getMessage());
+            System.err.println("API: Erro ao revogar consentimento: " + e.getMessage());
             return ResponseEntity.badRequest()
                     .body(new ConsentResponse(null, "Erro ao revogar: " + e.getMessage(), null));
         } catch (Exception e) {
-            System.err.println("❌ API: Erro interno ao revogar consentimento: " + e.getMessage());
+            System.err.println(" API: Erro interno ao revogar consentimento: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -285,7 +287,7 @@ public class ConsentController {
     @GetMapping("/{consentId}/status")
     public ResponseEntity<ConsentStatusResponse> getConsentStatus(@PathVariable @NotBlank String consentId) {
         try {
-            System.out.println("📊 API: Verificando status do consentimento: " + consentId);
+            System.out.println(" API: Verificando status do consentimento: " + consentId);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication.getName();
@@ -327,7 +329,7 @@ public class ConsentController {
     private ConsentSummary toConsentSummary(Consent consent) {
         return new ConsentSummary(
                 consent.getConsentId(),
-                consent.getClientId(),
+                consent.getClient_id(),
                 consent.getStatus(),
                 consent.getCreatedAt(),
                 consent.getExpiresAt(),
@@ -339,7 +341,7 @@ public class ConsentController {
         return new ConsentDetailResponse(
                 consent.getConsentId(),
                 consent.getUserId(),
-                consent.getClientId(),
+                consent.getClient_id(),
                 consent.getStatus(),
                 consent.getCreatedAt(),
                 consent.getExpiresAt(),
