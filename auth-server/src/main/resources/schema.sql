@@ -1,7 +1,53 @@
--- OAuth2 Authorization Server Schema for H2
--- Tabelas necessárias para o Spring Security OAuth2 Authorization Server
+-- Tabelas do Spring Authorization Server
+CREATE TABLE IF NOT EXISTS oauth2_authorization (
+    id varchar(100) NOT NULL,
+    registered_client_id varchar(100) NOT NULL,
+    principal_name varchar(200) NOT NULL,
+    authorization_grant_type varchar(100) NOT NULL,
+    authorized_scopes varchar(1000) DEFAULT NULL,
+    attributes varchar(4000) DEFAULT NULL,
+    state varchar(500) DEFAULT NULL,
+    authorization_code_value varchar(4000) DEFAULT NULL,
+    authorization_code_issued_at timestamp DEFAULT NULL,
+    authorization_code_expires_at timestamp DEFAULT NULL,
+    authorization_code_metadata varchar(2000) DEFAULT NULL,
+    access_token_value varchar(4000) DEFAULT NULL,
+    access_token_issued_at timestamp DEFAULT NULL,
+    access_token_expires_at timestamp DEFAULT NULL,
+    access_token_metadata varchar(2000) DEFAULT NULL,
+    access_token_type varchar(100) DEFAULT NULL,
+    access_token_scopes varchar(1000) DEFAULT NULL,
+    oidc_id_token_value varchar(4000) DEFAULT NULL,
+    oidc_id_token_issued_at timestamp DEFAULT NULL,
+    oidc_id_token_expires_at timestamp DEFAULT NULL,
+    oidc_id_token_metadata varchar(2000) DEFAULT NULL,
+    refresh_token_value varchar(4000) DEFAULT NULL,
+    refresh_token_issued_at timestamp DEFAULT NULL,
+    refresh_token_expires_at timestamp DEFAULT NULL,
+    refresh_token_metadata varchar(2000) DEFAULT NULL,
+    user_code_value varchar(4000) DEFAULT NULL,
+    user_code_issued_at timestamp DEFAULT NULL,
+    user_code_expires_at timestamp DEFAULT NULL,
+    user_code_metadata varchar(2000) DEFAULT NULL,
+    device_code_value varchar(4000) DEFAULT NULL,
+    device_code_issued_at timestamp DEFAULT NULL,
+    device_code_expires_at timestamp DEFAULT NULL,
+    device_code_metadata varchar(2000) DEFAULT NULL,
+    PRIMARY KEY (id)
+);
 
--- Tabela para clientes OAuth2 registrados
+CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
+    registered_client_id varchar(100) NOT NULL,
+    principal_name varchar(200) NOT NULL,
+    authorities varchar(1000) NOT NULL,
+    PRIMARY KEY (registered_client_id, principal_name)
+);
+
+-- Índices para performance
+CREATE INDEX IF NOT EXISTS oauth2_authorization_principal_name_idx ON oauth2_authorization (principal_name);
+CREATE INDEX IF NOT EXISTS oauth2_authorization_client_id_idx ON oauth2_authorization (registered_client_id);
+
+-- Tabela de clientes registrados (se não estiver usando JPA)
 CREATE TABLE IF NOT EXISTS oauth2_registered_client (
     id varchar(100) NOT NULL,
     client_id varchar(100) NOT NULL,
@@ -19,48 +65,3 @@ CREATE TABLE IF NOT EXISTS oauth2_registered_client (
     PRIMARY KEY (id)
 );
 
--- Tabela para autorizações OAuth2
-CREATE TABLE IF NOT EXISTS oauth2_authorization (
-    id varchar(100) NOT NULL,
-    registered_client_id varchar(100) NOT NULL,
-    principal_name varchar(200) NOT NULL,
-    authorization_grant_type varchar(100) NOT NULL,
-    authorized_scopes varchar(1000) DEFAULT NULL,
-    attributes text DEFAULT NULL,
-    state varchar(500) DEFAULT NULL,
-    authorization_code_value text DEFAULT NULL,
-    authorization_code_issued_at timestamp DEFAULT NULL,
-    authorization_code_expires_at timestamp DEFAULT NULL,
-    authorization_code_metadata text DEFAULT NULL,
-    access_token_value text DEFAULT NULL,
-    access_token_issued_at timestamp DEFAULT NULL,
-    access_token_expires_at timestamp DEFAULT NULL,
-    access_token_metadata text DEFAULT NULL,
-    access_token_type varchar(100) DEFAULT NULL,
-    access_token_scopes varchar(1000) DEFAULT NULL,
-    oidc_id_token_value text DEFAULT NULL,
-    oidc_id_token_issued_at timestamp DEFAULT NULL,
-    oidc_id_token_expires_at timestamp DEFAULT NULL,
-    oidc_id_token_metadata text DEFAULT NULL,
-    refresh_token_value text DEFAULT NULL,
-    refresh_token_issued_at timestamp DEFAULT NULL,
-    refresh_token_expires_at timestamp DEFAULT NULL,
-    refresh_token_metadata text DEFAULT NULL,
-    user_code_value text DEFAULT NULL,
-    user_code_issued_at timestamp DEFAULT NULL,
-    user_code_expires_at timestamp DEFAULT NULL,
-    user_code_metadata text DEFAULT NULL,
-    device_code_value text DEFAULT NULL,
-    device_code_issued_at timestamp DEFAULT NULL,
-    device_code_expires_at timestamp DEFAULT NULL,
-    device_code_metadata text DEFAULT NULL,
-    PRIMARY KEY (id)
-);
-
--- Tabela para consentimentos OAuth2
-CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
-    registered_client_id varchar(100) NOT NULL,
-    principal_name varchar(200) NOT NULL,
-    authorities varchar(1000) NOT NULL,
-    PRIMARY KEY (registered_client_id, principal_name)
-);
