@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import com.example.auth_server.model.Consent;
 import com.example.auth_server.service.ConsentService;
 
-@Component
 public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> {
 
     private final ConsentService consentService;
@@ -46,7 +45,7 @@ public class TokenEnhancer implements OAuth2TokenCustomizer<JwtEncodingContext> 
 
         // ✅ Filtrar consentimentos ativos para este cliente
         List<Consent> activeConsents = userConsents.stream()
-                .filter(consent -> clientId.equals(consent.getClient_id()))
+                .filter(consent -> clientId.equals(consent.getClientId())) // ✅ Mudança: getClientId()
                 .filter(consent -> ConsentService.STATUS_AUTHORIZED.equals(consent.getStatus()))
                 .filter(consent -> consentService.isConsentValid(consent))
                 .collect(Collectors.toList());
