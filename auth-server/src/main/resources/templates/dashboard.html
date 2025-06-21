@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization Server - Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            text-align: center;
+            max-width: 700px;
+            width: 100%;
+        }
+        .header {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .welcome {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4caf50;
+        }
+        .links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .link-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: block;
+        }
+        .link-card:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: #1976d2;
+        }
+        .link-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .link-card p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .logout-btn {
+            background: #f44336;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 30px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: #d32f2f;
+            text-decoration: none;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .status {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="icon">🏦</div>
+            <h1>Open Finance Authorization Server</h1>
+            <p>Sistema de Autorização em funcionamento</p>
+        </div>
+
+        <div class="status">
+            ✅ <strong>Sistema Online</strong> - Todos os serviços estão funcionando corretamente
+        </div>
+
+        <div class="welcome">
+            <h3>🎉 Login realizado com sucesso!</h3>
+            <p>Bem-vindo ao painel de controle do Authorization Server</p>
+        </div>
+
+        <div class="links">
+            <a href="/h2-console" class="link-card" target="_blank">
+                <h3>💾 H2 Console</h3>
+                <p>Gerenciar banco de dados</p>
+            </a>
+            
+            <a href="/debug/users" class="link-card" target="_blank">
+                <h3>👥 Usuários</h3>
+                <p>Listar usuários cadastrados</p>
+            </a>
+            
+            <a href="/oauth2/jwks" class="link-card" target="_blank">
+                <h3>🔐 JWK Set</h3>
+                <p>Chaves públicas para JWT</p>
+            </a>
+            
+            <a href="http://localhost:8081" class="link-card" target="_blank">
+                <h3>📱 OAuth Client</h3>
+                <p>Aplicação cliente (porta 8081)</p>
+            </a>
+
+            <a href="http://localhost:8082" class="link-card" target="_blank">
+                <h3>🏪 Resource Server</h3>
+                <p>Servidor de recursos (porta 8082)</p>
+            </a>
+
+            <a href="/debug/health" class="link-card">
+                <h3>❤️ Health Check</h3>
+                <p>Status do sistema</p>
+            </a>
+        </div>
+
+        <a href="/logout" class="logout-btn">🚪 Logout</a>
+        
+        <div style="margin-top: 30px; font-size: 12px; color: #666;">
+            <p>© 2025 Open Finance Brasil - Authorization Server</p>
+        </div>
+    </div>
+</body>
+</html>

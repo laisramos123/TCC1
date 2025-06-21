@@ -1,0 +1,10 @@
+{
+    "properties": [
+      {
+        "name": "resource-server.api-base-url",
+        "type": "java.lang.String",
+        "description": "Base URL for the resource server API",
+        "defaultValue": "http://localhost:8082/api"
+      }
+    ]
+  }
