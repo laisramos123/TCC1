@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Detalhes da Conta - TPP Open Finance</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" 
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuaOmLCAo" crossorigin="anonymous" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">TPP Open Finance</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/accounts">Contas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/transactions">Transações</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <form th:action="@{/logout}" method="post">
+                        <button class="btn btn-sm btn-light" type="submit">Sair</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Detalhes da Conta</h3>
+                        <a href="/accounts" class="btn btn-outline-secondary btn-sm">← Voltar para Contas</a>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${success}" class="alert alert-success">
+                            <p>Dados obtidos com sucesso através do Open Finance.</p>
+                        </div>
+                        
+                        <div th:if="${error}" class="alert alert-danger">
+                            <p th:text="${error}">Erro ao obter dados</p>
+                        </div>
+                        
+                        <div th:if="${success and account != null}" class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Número da Conta:</th>
+                                        <td th:text="${account.accountNumber}">123456</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tipo de Conta:</th>
+                                        <td th:text="${account.accountType}">Corrente</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Banco:</th>
+                                        <td th:text="${account.bank}">Banco XYZ</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Agência:</th>
+                                        <td th:text="${account.branch}">0001</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Saldo Atual:</th>
+                                        <td class="text-success fw-bold" th:text="${account.currency + ' ' + #numbers.formatDecimal(account.balance, 0, 2)}">R$ 1000,00</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Titular:</th>
+                                        <td th:text="${account.owner}">Nome do Titular</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
