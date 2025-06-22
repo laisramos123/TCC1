@@ -82,6 +82,7 @@
 			<artifactId>bcprov-ext-jdk18on</artifactId>
 			<version>1.75</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>

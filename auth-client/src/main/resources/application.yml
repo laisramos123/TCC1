@@ -6,16 +6,16 @@ spring:
     oauth2:
       client:
         registration:
-          tpp-client: # Este é o registration ID que você está tentando usar
+          tpp-client:
             client-id: oauth-client
             client-secret: oauth-client-secret
             scope: openid,profile,email,accounts,credit-cards-accounts
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             client-name: TPP OAuth Client
-            provider: auth-server-provider # IMPORTANTE: deve referenciar o provider abaixo
+            provider: auth-server-provider
         provider:
-          auth-server-provider: # Nome do provider referenciado acima
+          auth-server-provider:
             authorization-uri: http://localhost:8080/oauth2/authorize
             token-uri: http://localhost:8080/oauth2/token
             user-info-uri: http://localhost:8080/userinfo
@@ -30,5 +30,7 @@ server:
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
     org.springframework.security.oauth2: DEBUG
+    org.springframework.web.client: DEBUG
+    com.example.auth_client: DEBUG

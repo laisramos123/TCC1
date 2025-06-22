@@ -56,7 +56,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     // Relacionamentos
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>();
 
     // Métodos de ciclo de vida
