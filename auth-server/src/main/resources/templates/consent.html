@@ -37,11 +37,6 @@
             text-align: center;
         }
 
-        .open-finance-logo {
-            width: 150px;
-            margin-bottom: 20px;
-        }
-
         .consent-header h1 {
             font-size: 24px;
             font-weight: 600;
@@ -261,9 +256,9 @@
         <div class="consent-body">
             <div class="institution-info">
                 <h3>Instituição Receptora de Dados</h3>
-                <p><strong>Nome:</strong> <span th:text="${clientName}">TPP Financial Services</span></p>
-                <p><strong>CNPJ:</strong> <span th:text="${clientCnpj}">12.345.678/0001-90</span></p>
-                <p><strong>Tipo:</strong> Instituição de Pagamento</p>
+                <p><strong>Nome:</strong> <span th:text="${clientName ?: 'TPP Financial Services'}">TPP Financial Services</span></p>
+                <p><strong>CNPJ:</strong> <span th:text="${clientCnpj ?: '12.345.678/0001-90'}">12.345.678/0001-90</span></p>
+                <p><strong>Cliente ID:</strong> <span th:text="${clientId}">oauth-client</span></p>
             </div>
             
             <div class="consent-details">
@@ -271,13 +266,13 @@
                 <ul class="permission-list">
                     <li th:each="permission : ${permissions}" class="permission-item">
                         <div class="permission-icon" th:switch="${permission}">
-                            <span th:case="'accounts'">💰</span>
-                            <span th:case="'credit-cards-accounts'">💳</span>
-                            <span th:case="'loans'">🏠</span>
-                            <span th:case="'financings'">🚗</span>
-                            <span th:case="'invoice-financings'">📄</span>
-                            <span th:case="'unarranged-accounts-overdraft'">⚠️</span>
-                            <span th:case="*">📊</span>
+                            <span th:case="'accounts'"></span>
+                            <span th:case="'credit-cards-accounts'"></span>
+                            <span th:case="'loans'"></span>
+                            <span th:case="'profile'"></span>
+                            <span th:case="'email'"></span>
+                            <span th:case="'openid'"></span>
+                            <span th:case="*"></span>
                         </div>
                         <div class="permission-content" th:switch="${permission}">
                             <div th:case="'accounts'">
@@ -288,25 +283,21 @@
                                 <h5>Dados de Cartões de Crédito</h5>
                                 <p>Limites, faturas, transações e informações de seus cartões de crédito</p>
                             </div>
-                            <div th:case="'loans'">
-                                <h5>Dados de Empréstimos</h5>
-                                <p>Contratos, parcelas, taxas e informações de seus empréstimos</p>
+                            <div th:case="'profile'">
+                                <h5>Informações do Perfil</h5>
+                                <p>Nome, dados pessoais e informações básicas de identificação</p>
                             </div>
-                            <div th:case="'financings'">
-                                <h5>Dados de Financiamentos</h5>
-                                <p>Contratos de financiamento de veículos e imóveis</p>
+                            <div th:case="'email'">
+                                <h5>Endereço de Email</h5>
+                                <p>Acesso ao seu endereço de email para comunicações</p>
                             </div>
-                            <div th:case="'invoice-financings'">
-                                <h5>Antecipação de Recebíveis</h5>
-                                <p>Operações de antecipação de recebíveis e duplicatas</p>
-                            </div>
-                            <div th:case="'unarranged-accounts-overdraft'">
-                                <h5>Adiantamento a Depositantes</h5>
-                                <p>Informações sobre uso de cheque especial e limites</p>
+                            <div th:case="'openid'">
+                                <h5>Identificação OpenID</h5>
+                                <p>Autenticação segura e identificação única</p>
                             </div>
                             <div th:case="*">
                                 <h5 th:text="${permission}">Permissão</h5>
-                                <p>Dados relacionados a esta permissão</p>
+                                <p>Dados relacionados a esta permissão específica</p>
                             </div>
                         </div>
                     </li>
@@ -315,13 +306,13 @@
             
             <div class="consent-period">
                 <h4>⏰ Período de Compartilhamento</h4>
-                <p>Este consentimento será válido até <strong th:text="${consentExpirationDate}">21/06/2026</strong> (12 meses)</p>
+                <p>Este consentimento será válido até <strong th:text="${consentExpirationDate ?: '21/06/2026'}">21/06/2026</strong> (12 meses)</p>
             </div>
             
             <div class="important-info">
                 <h4>⚠️ Informações Importantes</h4>
                 <ul>
-                    <li>Você pode revogar este consentimento a qualquer momento através dos canais da sua instituição</li>
+                    <li>Você pode revogar este consentimento a qualquer momento</li>
                     <li>O compartilhamento segue as normas do Banco Central e da LGPD</li>
                     <li>Seus dados serão utilizados exclusivamente para as finalidades autorizadas</li>
                     <li>A instituição receptora não pode compartilhar seus dados com terceiros sem sua autorização</li>
@@ -329,8 +320,11 @@
             </div>
             
             <form method="post" th:action="@{/oauth2/consent}">
+                <!-- CSRF Token -->
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf}"/>
-                <input type="hidden" name="client_id" th:value="${client_id}"/>
+                
+                <!-- Parâmetros OAuth2 -->
+                <input type="hidden" name="client_id" th:value="${clientId}"/>
                 <input type="hidden" name="state" th:value="${state}"/>
                 <input type="hidden" name="scope" th:value="${scope}"/>
                 

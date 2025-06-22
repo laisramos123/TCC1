@@ -10,10 +10,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop #  Mudança: create-drop para recriar sempre
-    show-sql: false #  Reduzir logs SQL
+      ddl-auto: create-drop
+    show-sql: false
     database-platform: org.hibernate.dialect.H2Dialect
-    defer-datasource-initialization: true #  Importante para inicialização correta
+    defer-datasource-initialization: true
 
   h2:
     console:
@@ -34,20 +34,15 @@ server:
     session:
       timeout: 30m
 
-#
 logging:
   level:
     org.springframework.security: INFO
     org.springframework.security.oauth2: DEBUG
     com.example.auth_server: DEBUG
     org.hibernate.SQL: WARN
-    org.springframework.jdbc: WARN
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
-  endpoint:
-    health:
-      show-details: when-authorized
