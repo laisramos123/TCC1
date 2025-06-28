@@ -52,6 +52,22 @@
             padding: 30px;
         }
 
+        .debug-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #6c757d;
+            border-left: 4px solid #007bff;
+        }
+
+        .debug-info h5 {
+            color: #007bff;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
         .institution-info {
             background: #f8f9fa;
             border-radius: 8px;
@@ -254,6 +270,16 @@
         </div>
         
         <div class="consent-body">
+            <!-- Debug Info (remover em produção) -->
+            <div class="debug-info">
+                <h5>🔍 Informações de Debug OAuth2</h5>
+                <p><strong>Client ID:</strong> <span th:text="${clientId}">N/A</span></p>
+                <p><strong>Response Type:</strong> <span th:text="${responseType}">N/A</span></p>
+                <p><strong>Redirect URI:</strong> <span th:text="${redirectUri}">N/A</span></p>
+                <p><strong>State:</strong> <span th:text="${state}">N/A</span></p>
+                <p><strong>Code Challenge:</strong> <span th:text="${codeChallenge ?: 'N/A'}">N/A</span></p>
+            </div>
+            
             <div class="institution-info">
                 <h3>Instituição Receptora de Dados</h3>
                 <p><strong>Nome:</strong> <span th:text="${clientName ?: 'TPP Financial Services'}">TPP Financial Services</span></p>
@@ -266,13 +292,14 @@
                 <ul class="permission-list">
                     <li th:each="permission : ${permissions}" class="permission-item">
                         <div class="permission-icon" th:switch="${permission}">
-                            <span th:case="'accounts'"></span>
-                            <span th:case="'credit-cards-accounts'"></span>
-                            <span th:case="'loans'"></span>
-                            <span th:case="'profile'"></span>
-                            <span th:case="'email'"></span>
-                            <span th:case="'openid'"></span>
-                            <span th:case="*"></span>
+                            <span th:case="'accounts'">🏦</span>
+                            <span th:case="'credit-cards-accounts'">💳</span>
+                            <span th:case="'loans'">💰</span>
+                            <span th:case="'transactions'">🔄</span>
+                            <span th:case="'profile'">👤</span>
+                            <span th:case="'email'">📧</span>
+                            <span th:case="'openid'">🔐</span>
+                            <span th:case="*">📊</span>
                         </div>
                         <div class="permission-content" th:switch="${permission}">
                             <div th:case="'accounts'">
@@ -282,6 +309,10 @@
                             <div th:case="'credit-cards-accounts'">
                                 <h5>Dados de Cartões de Crédito</h5>
                                 <p>Limites, faturas, transações e informações de seus cartões de crédito</p>
+                            </div>
+                            <div th:case="'transactions'">
+                                <h5>Dados de Transações</h5>
+                                <p>Histórico de transações, transferências e movimentações financeiras</p>
                             </div>
                             <div th:case="'profile'">
                                 <h5>Informações do Perfil</h5>
@@ -323,10 +354,16 @@
                 <!-- CSRF Token -->
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf}"/>
                 
-                <!-- Parâmetros OAuth2 -->
+                <!-- ✅ Parâmetros OAuth2 obrigatórios (preservados do request original) -->
                 <input type="hidden" name="client_id" th:value="${clientId}"/>
-                <input type="hidden" name="state" th:value="${state}"/>
+                <input type="hidden" name="response_type" th:value="${responseType}"/>
                 <input type="hidden" name="scope" th:value="${scope}"/>
+                
+                <!-- ✅ Parâmetros OAuth2 opcionais (preservados se existirem) -->
+                <input type="hidden" name="redirect_uri" th:value="${redirectUri}" th:if="${redirectUri}"/>
+                <input type="hidden" name="state" th:value="${state}" th:if="${state}"/>
+                <input type="hidden" name="code_challenge" th:value="${codeChallenge}" th:if="${codeChallenge}"/>
+                <input type="hidden" name="code_challenge_method" th:value="${codeChallengeMethod}" th:if="${codeChallengeMethod}"/>
                 
                 <div class="consent-actions">
                     <button type="submit" name="action" value="approve" class="consent-btn btn-authorize">

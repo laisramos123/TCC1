@@ -8,20 +8,19 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.text.ParseException;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
-import org.springframework.stereotype.Service;
 
+import com.example.auth_server.dilithium.DilithiumKeyGeneratorService.DilithiumJWK;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyOperation;
@@ -31,9 +30,16 @@ import com.nimbusds.jose.util.Base64URL;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Service
 @Slf4j
-public class DilithiumKeyGeneratorService {
+public class CustomDilithiumJWK extends JWK {
+
+    protected CustomDilithiumJWK(KeyType kty, KeyUse use, Set<KeyOperation> ops, Algorithm alg, String kid, URI x5u,
+            Base64URL x5t, Base64URL x5t256, List<com.nimbusds.jose.util.Base64> x5c, Date exp, Date nbf, Date iat,
+            KeyStore ks) {
+        super(kty, use, ops, alg, kid, x5u, x5t, x5t256, x5c, exp, nbf, iat, ks);
+
+    }
+
     static {
         // Registrar o provider do Bouncy Castle para algoritmos pós-quânticos
         Security.addProvider(new BouncyCastlePQCProvider());
@@ -51,13 +57,13 @@ public class DilithiumKeyGeneratorService {
             keyGen.initialize(DilithiumParameterSpec.dilithium3, new SecureRandom());
 
             KeyPair keyPair = keyGen.generateKeyPair();
-            log.info("  Par de chaves Dilithium gerado com sucesso");
+            log.info("✅ Par de chaves Dilithium gerado com sucesso");
             log.debug("Algoritmo: {}", keyPair.getPrivate().getAlgorithm());
             log.debug("Formato chave privada: {}", keyPair.getPrivate().getFormat());
 
             return keyPair;
         } catch (Exception e) {
-            log.error("  Erro ao gerar chaves Dilithium", e);
+            log.error("❌ Erro ao gerar chaves Dilithium", e);
             throw new RuntimeException("Falha ao gerar chaves Dilithium", e);
         }
     }
@@ -81,8 +87,7 @@ public class DilithiumKeyGeneratorService {
     }
 
     /**
-     * Classe ESTÁTICA para representar uma chave JWK Dilithium que estende JWK
-     * CORREÇÃO: Torna a classe estática e simplifica a herança
+     * Classe para representar uma chave JWK Dilithium que estende JWK
      */
     public static class DilithiumJWK extends JWK {
         private final String publicKeyBase64;
@@ -92,13 +97,9 @@ public class DilithiumKeyGeneratorService {
         // KeyType customizado para algoritmos pós-quânticos
         private static final KeyType PQC_KEY_TYPE = new KeyType("PQC", null);
 
-        /**
-         * Construtor SIMPLIFICADO que garante herança correta
-         */
         public DilithiumJWK(KeyPair keyPair, String kid, String publicKeyBase64, String privateKeyBase64) {
-            // CORREÇÃO: Construtor simplificado com parâmetros essenciais
             super(
-                    PQC_KEY_TYPE, // KeyType
+                    PQC_KEY_TYPE, // KeyType (não String!)
                     KeyUse.SIGNATURE, // use
                     Set.of(KeyOperation.SIGN, KeyOperation.VERIFY), // ops
                     new Algorithm("Dilithium3"), // alg
@@ -113,20 +114,9 @@ public class DilithiumKeyGeneratorService {
                     null // keyStore
             );
 
-            // Validação de parâmetros
-            if (keyPair == null) {
-                throw new IllegalArgumentException("KeyPair não pode ser null");
-            }
-            if (publicKeyBase64 == null || publicKeyBase64.trim().isEmpty()) {
-                throw new IllegalArgumentException("Chave pública Base64 não pode ser null ou vazia");
-            }
-
             this.keyPair = keyPair;
             this.publicKeyBase64 = publicKeyBase64;
             this.privateKeyBase64 = privateKeyBase64;
-
-            log.debug("✅ DilithiumJWK criado: kid={}, hasPrivateKey={}",
-                    kid, privateKeyBase64 != null);
         }
 
         @Override
@@ -202,33 +192,29 @@ public class DilithiumKeyGeneratorService {
         public PrivateKey getPrivateKey() {
             return keyPair.getPrivate();
         }
+    }
 
-        /**
-         * Override equals para comparação correta
-         */
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof DilithiumJWK))
-                return false;
-            if (!super.equals(obj))
-                return false;
+    @Override
+    public LinkedHashMap<String, ?> getRequiredParams() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getRequiredParams'");
+    }
 
-            DilithiumJWK other = (DilithiumJWK) obj;
-            return Objects.equals(publicKeyBase64, other.publicKeyBase64) &&
-                    Objects.equals(privateKeyBase64, other.privateKeyBase64);
-        }
+    @Override
+    public boolean isPrivate() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'isPrivate'");
+    }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(super.hashCode(), publicKeyBase64, privateKeyBase64);
-        }
+    @Override
+    public JWK toPublicJWK() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'toPublicJWK'");
+    }
 
-        @Override
-        public String toString() {
-            return String.format("DilithiumJWK{kid='%s', hasPrivateKey=%s, algorithm='%s'}",
-                    getKeyID(), isPrivate(), "Dilithium3");
-        }
+    @Override
+    public int size() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'size'");
     }
 }
