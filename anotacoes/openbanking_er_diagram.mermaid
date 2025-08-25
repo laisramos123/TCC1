@@ -1,0 +1,269 @@
+erDiagram
+    %% ========================================
+    %% AUTHORIZATION SERVER
+    %% ========================================
+    
+    %% Entidades principais do Consent
+    CONSENT {
+        string consent_id PK "URN format"
+        enum status "AWAITING_AUTHORISATION|AUTHORISED|REJECTED"
+        datetime creation_date_time
+        datetime status_update_date_time
+        datetime expiration_date_time
+        datetime transaction_from_date_time
+        datetime transaction_to_date_time
+        string client_id "Instituição receptora"
+        string interaction_id "x-fapi-interaction-id"
+        string logged_user_document
+        string logged_user_document_type
+        string business_entity_document
+        string business_entity_document_type
+    }
+
+    CONSENT_PERMISSIONS {
+        string consent_id PK,FK
+        enum permission PK "ACCOUNTS_READ, LOANS_READ, etc"
+    }
+
+    CONSENT_AUDIT {
+        bigint id PK
+        string consent_id FK
+        enum previous_status
+        enum new_status
+        datetime timestamp
+        string reason
+        string user_agent
+        string ip_address
+    }
+
+    PERMISSION_GROUP {
+        string name PK "DADOS_CADASTRAIS_PF"
+        string category "Cadastro, Contas, etc"
+        string description
+    }
+
+    PERMISSION_GROUP_ITEMS {
+        string group_name PK,FK
+        enum required_permission PK
+    }
+
+    %% Entidades OAuth2 (Spring Authorization Server)
+    OAUTH2_REGISTERED_CLIENT {
+        string id PK
+        string client_id UK
+        string client_name
+        string client_secret
+        datetime client_id_issued_at
+        datetime client_secret_expires_at
+        string software_statement "JWT do DCR"
+        string org_id
+        string software_id
+    }
+
+    OAUTH2_CLIENT_AUTH_METHODS {
+        string client_id PK,FK
+        string auth_method PK
+    }
+
+    OAUTH2_CLIENT_GRANT_TYPES {
+        string client_id PK,FK
+        string grant_type PK
+    }
+
+    OAUTH2_CLIENT_REDIRECT_URIS {
+        string client_id PK,FK
+        string redirect_uri PK
+    }
+
+    OAUTH2_CLIENT_SCOPES {
+        string client_id PK,FK
+        string scope PK
+    }
+
+    OAUTH2_AUTHORIZATION {
+        string id PK
+        string registered_client_id FK
+        string principal_name "CPF do usuário"
+        string authorization_grant_type
+        text attributes "JSON"
+        text state
+        text authorization_code_value
+        datetime authorization_code_issued_at
+        datetime authorization_code_expires_at
+        text access_token_value
+        datetime access_token_issued_at
+        datetime access_token_expires_at
+        text refresh_token_value
+        datetime refresh_token_issued_at
+        datetime refresh_token_expires_at
+        string consent_id FK "Link para o Consent OB"
+    }
+
+    OAUTH2_AUTHORIZATION_SCOPES {
+        string authorization_id PK,FK
+        string scope PK
+    }
+
+    OAUTH2_AUTHORIZATION_CONSENT {
+        string registered_client_id PK,FK
+        string principal_name PK
+        string open_banking_consent_id FK
+    }
+
+    OAUTH2_CONSENT_AUTHORITIES {
+        string registered_client_id PK,FK
+        string principal_name PK,FK
+        string authority PK
+    }
+
+    %% ========================================
+    %% RESOURCE SERVER
+    %% ========================================
+
+    %% Models de validação (simplificadas)
+    CONSENT_VALIDATION {
+        string consent_id PK
+        enum status
+        datetime expiration_date_time
+        string client_id
+    }
+
+    CONSENT_VALIDATION_PERMISSIONS {
+        string consent_id PK,FK
+        enum permission PK
+    }
+
+    %% Models de negócio (exemplos)
+    CUSTOMER {
+        string customer_id PK
+        string document_number
+        string document_type
+        string name
+        string email
+        datetime created_at
+        datetime updated_at
+    }
+
+    ACCOUNT {
+        string account_id PK
+        string customer_id FK
+        string branch_code
+        string number
+        string check_digit
+        enum type "CONTA_DEPOSITO_A_VISTA|CONTA_POUPANCA"
+        enum subtype
+        string currency "BRL"
+        datetime created_at
+    }
+
+    ACCOUNT_BALANCE {
+        bigint id PK
+        string account_id FK
+        decimal available_amount
+        decimal blocked_amount
+        decimal automatically_invested_amount
+        datetime reference_date
+    }
+
+    ACCOUNT_TRANSACTION {
+        string transaction_id PK
+        string account_id FK
+        decimal amount
+        enum type "DEBITO|CREDITO"
+        enum transaction_name
+        string description
+        datetime completion_date_time
+        datetime booking_date_time
+    }
+
+    CREDIT_CARD_ACCOUNT {
+        string credit_card_account_id PK
+        string customer_id FK
+        string name
+        string product_type
+        string product_additional_info
+        string credit_card_network
+        datetime created_at
+    }
+
+    CREDIT_CARD_LIMIT {
+        bigint id PK
+        string credit_card_account_id FK
+        decimal consolidated_limit_amount
+        decimal used_limit_amount
+        decimal available_limit_amount
+        datetime reference_date
+    }
+
+    LOAN {
+        string contract_id PK
+        string customer_id FK
+        string contract_number
+        enum type "EMPRESTIMO"
+        enum subtype
+        decimal contract_amount
+        string currency "BRL"
+        date contract_date
+        datetime created_at
+    }
+
+    %% ========================================
+    %% CLIENT APPLICATION (TPP)
+    %% ========================================
+
+    %% Apenas DTOs/Cache temporário
+    CLIENT_CONSENT_CACHE {
+        string consent_id PK
+        enum status
+        text permissions_json
+        datetime expiration_date_time
+        datetime cached_at
+    }
+
+    CLIENT_TOKEN_CACHE {
+        string access_token PK
+        string consent_id FK
+        datetime expires_at
+        text scopes_json
+        datetime cached_at
+    }
+
+    %% ========================================
+    %% RELACIONAMENTOS
+    %% ========================================
+
+    %% Authorization Server - Consent relationships
+    CONSENT ||--o{ CONSENT_PERMISSIONS : "has"
+    CONSENT ||--o{ CONSENT_AUDIT : "tracks"
+    PERMISSION_GROUP ||--o{ PERMISSION_GROUP_ITEMS : "contains"
+
+    %% Authorization Server - OAuth2 relationships
+    OAUTH2_REGISTERED_CLIENT ||--o{ OAUTH2_CLIENT_AUTH_METHODS : "supports"
+    OAUTH2_REGISTERED_CLIENT ||--o{ OAUTH2_CLIENT_GRANT_TYPES : "supports"
+    OAUTH2_REGISTERED_CLIENT ||--o{ OAUTH2_CLIENT_REDIRECT_URIS : "has"
+    OAUTH2_REGISTERED_CLIENT ||--o{ OAUTH2_CLIENT_SCOPES : "supports"
+    
+    OAUTH2_REGISTERED_CLIENT ||--o{ OAUTH2_AUTHORIZATION : "issues"
+    OAUTH2_AUTHORIZATION ||--o{ OAUTH2_AUTHORIZATION_SCOPES : "grants"
+    
+    OAUTH2_REGISTERED_CLIENT ||--o{ OAUTH2_AUTHORIZATION_CONSENT : "has_consent"
+    OAUTH2_AUTHORIZATION_CONSENT ||--o{ OAUTH2_CONSENT_AUTHORITIES : "grants"
+
+    %% Cross-domain relationships
+    CONSENT ||--o{ OAUTH2_AUTHORIZATION : "authorizes"
+    CONSENT ||--o{ OAUTH2_AUTHORIZATION_CONSENT : "enables"
+
+    %% Resource Server relationships
+    CONSENT_VALIDATION ||--o{ CONSENT_VALIDATION_PERMISSIONS : "validates"
+    
+    CUSTOMER ||--o{ ACCOUNT : "owns"
+    CUSTOMER ||--o{ CREDIT_CARD_ACCOUNT : "owns"
+    CUSTOMER ||--o{ LOAN : "has"
+    
+    ACCOUNT ||--o{ ACCOUNT_BALANCE : "has"
+    ACCOUNT ||--o{ ACCOUNT_TRANSACTION : "has"
+    
+    CREDIT_CARD_ACCOUNT ||--o{ CREDIT_CARD_LIMIT : "has"
+
+    %% Client Application relationships
+    CLIENT_CONSENT_CACHE ||--o{ CLIENT_TOKEN_CACHE : "generates"
