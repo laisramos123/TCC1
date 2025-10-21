@@ -1,0 +1,63 @@
+# a
+spring:
+  application:
+    name: auth-server
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/openFinance_auth
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:quantum_secure_2024}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  quantum:
+    dilithium:
+      security-level: ${DILITHIUM_SECURITY_LEVEL:3}
+      key-cache-ttl: 3600
+
+  oauth2:
+    authorization-server:
+      issuer: ${JWT_ISSUER:http://localhost:8080}
+      client:
+        oauth-client:
+          client-id: oauth-client
+          client-secret: ${CLIENT_SECRET:quantum_secret_2024}
+          redirect-uris:
+            - ${CLIENT_REDIRECT_URI:http://auth-client:8081/login/oauth2/code/tpp-client}
+          scopes: openid,accounts,transactions,credit-cards
+
+server:
+  port: 8080
+
+security:
+  require-ssl: false
+  cors:
+    allowed-origins:
+      - "http://auth-client:8081"
+      - "http://localhost:8081"
+      - "http://localhost:4200" # Para Angular futuro
+
+logging:
+  level:
+    com.example.auth_server.dilithium: DEBUG
+    org.springframework.security.oauth2: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    health:
+      show-details: always

@@ -1,27 +1,35 @@
-# auth-client/src/main/resources/application.yml
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          tpp-client:
-            client-id: oauth-client
-            client-secret: oauth-client-secret
-            scope: openid,profile,email,accounts,transactions
-            authorization-grant-type: authorization_code
-            redirect-uri: "http://localhost:8081/login/oauth2/code/tpp-client" # ← EXPLICIT
-            client-name: TPP OAuth Client
-            provider: auth-server-provider
-        provider:
-          auth-server-provider:
-            authorization-uri: http://localhost:8080/oauth2/authorize # ← MUDANÇA
-            token-uri: http://localhost:8080/oauth2/token # ← MUDANÇA
-            user-info-uri: http://localhost:8080/userinfo # ← MUDANÇA
-            jwk-set-uri: http://localhost:8080/oauth2/jwks # ← MUDANÇA
-            user-name-attribute: sub
-
-resource-server:
-  api-base-url: http://localhost:8082 # ← MUDANÇA
-
 server:
-  port: 8081
+  port: 8080
+  ssl:
+    enabled: false # Para desenvolvimento
+
+spring:
+  application:
+    name: client-tpp
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tpp_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# Configuração do Cliente TPP
+tpp:
+  client-id: tpp-client-id
+  client-secret: tpp-client-secret
+  redirect-uri: http://localhost:8080/callback
+
+  # URLs do banco
+  bank:
+    authorization-server: http://localhost:9000
+    resource-server: http://localhost:9001
+
+logging:
+  level:
+    root: INFO
+    com.tpp.client: DEBUG

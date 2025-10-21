@@ -1,0 +1,22 @@
+# docker-compose.yml
+services:
+  auth-server:
+    build: 
+      context: ./auth-server     
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+
+  resource-server:
+    build: 
+      context: ./resource-server   
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+
+  auth-client:
+    build: 
+      context: ./auth-client     
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"

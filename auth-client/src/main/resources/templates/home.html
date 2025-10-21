@@ -1,29 +1,105 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>TPP Cliente - Open Finance</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" 
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuaOmLCAo" crossorigin="anonymous" />
+    <meta charset="UTF-8">
+    <title>TPP - Open Finance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .permissions {
+            margin: 20px 0;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .permission-item {
+            margin: 10px 0;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-8 offset-md-2">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="text-center">Bem-vindo ao TPP Open Finance</h2>
-                    </div>
-                    <div class="card-body">
-                        <p class="lead text-center">Acesse sua conta bancária de forma segura através do Open Finance</p>
-                        <div class="d-grid gap-2 col-6 mx-auto mt-4">
-                            <a href="/oauth2/authorization/tpp-client" class="btn btn-primary btn-lg">Entrar com sua conta bancária</a>
-                        </div>
-                    </div>
+    <div class="card">
+        <h1>🏦 TPP - Terceira Parte Provedora</h1>
+        <p>Conecte suas contas bancárias de forma segura usando Open Finance</p>
+    </div>
+
+    <div class="card">
+        <h2>Solicitar Acesso às Contas</h2>
+        <form action="/consent/initiate" method="post">
+            <label>CPF do Titular:</label>
+            <input type="text" name="cpf" placeholder="12345678900" required>
+
+            <div class="permissions">
+                <p><strong>Selecione as permissões:</strong></p>
+
+                <div class="permission-item">
+                    <input type="checkbox" name="permissions" value="ACCOUNTS_READ" checked>
+                    <label>Leitura de contas</label>
+                </div>
+
+                <div class="permission-item">
+                    <input type="checkbox" name="permissions" value="ACCOUNTS_BALANCES_READ" checked>
+                    <label>Leitura de saldos</label>
+                </div>
+
+                <div class="permission-item">
+                    <input type="checkbox" name="permissions" value="ACCOUNTS_TRANSACTIONS_READ" checked>
+                    <label>Leitura de transações</label>
                 </div>
             </div>
-        </div>
+
+            <button type="submit" class="button">Conectar Banco</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Como funciona?</h3>
+        <ol>
+            <li>Você será redirecionado para o site do seu banco</li>
+            <li>Faça login com suas credenciais bancárias</li>
+            <li>Autorize o compartilhamento de dados</li>
+            <li>Você será trazido de volta para visualizar suas informações</li>
+        </ol>
     </div>
 </body>
+
 </html>

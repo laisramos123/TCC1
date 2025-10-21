@@ -1,0 +1,53 @@
+# resource-server/src/main/resources/application-docker.yml
+spring:
+  application:
+    name: resource-server
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/openFinance_resources
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:quantum_secure_2024}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  # ← CONFIGURAÇÃO OAuth2 Resource Server
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVER_URL:http://auth-server:8080}
+          jwk-set-uri: ${AUTH_SERVER_URL:http://auth-server:8080}/.well-known/jwks.json
+
+server:
+  port: 8082
+
+# ← NOVO: Configurações específicas Open Finance
+openFinance:
+  consent:
+    default-expiration-hours: 24
+    auto-revoke-unused: true
+  api:
+    rate-limit:
+      requests-per-minute: 100
+      burst-capacity: 200
+
+logging:
+  level:
+    com.example.resource_server: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId},%X{consentId}] %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      service: resource-server
+      environment: docker
