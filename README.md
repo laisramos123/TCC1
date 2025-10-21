@@ -1,3 +1,4 @@
+ <!--
 # 🔐 TCC Open Banking + Segurança Pós-Quântica (Dilithium)
 
 Sistema completo de Open Banking implementando segurança pós-quântica com algoritmos Dilithium para assinatura digital e OAuth2 + OpenID Connect para autorização.
@@ -250,3 +251,4 @@ time curl -X POST http://localhost:8080/api/v1/dilithium/public/assinar \
 **Comando para demonstração da banca:** `.\build-robusto.bat` ⚡
 
 **Sistema completo funcionando em ~3 minutos!** 🚀🎓
+-->
