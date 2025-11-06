@@ -1,0 +1,9 @@
+server:
+  port: 9082
+
+jwt:
+  signature:
+    algorithm: DILITHIUM
+
+authorization-server:
+  base-url: http://localhost:9080

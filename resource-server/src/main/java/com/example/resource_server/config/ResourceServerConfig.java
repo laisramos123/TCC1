@@ -1,10 +1,12 @@
 package com.example.resource_server.config;
 
-import com.example.resource_server.security.CertificateBoundAccessTokenValidator;
+import com.example.resource_server.jwt.CustomJwtDecoder;
 import com.example.resource_server.security.ConsentValidationFilter;
 import com.example.resource_server.security.JwtAuthenticationConverter;
 import com.example.resource_server.service.ConsentValidationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.resource_server.signature.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -12,10 +14,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.preauth.x509.X509AuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -23,11 +22,22 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity(prePostEnabled = true)
 public class ResourceServerConfig {
 
-        @Autowired
-        private ConsentValidationService consentValidationService;
+        @Value("${jwt.signature.algorithm:RSA}")
+        private String algorithmName;
 
-        @Autowired
-        private CertificateBoundAccessTokenValidator certificateValidator;
+        private final ConsentValidationService consentValidationService;
+        private final SignatureAlgorithm rsaSignature;
+        private final SignatureAlgorithm dilithiumSignature;
+
+        public ResourceServerConfig(
+                        ConsentValidationService consentValidationService,
+                        @Qualifier("rsaSignature") SignatureAlgorithm rsaSignature,
+                        @Qualifier("dilithiumSignature") SignatureAlgorithm dilithiumSignature) {
+
+                this.consentValidationService = consentValidationService;
+                this.rsaSignature = rsaSignature;
+                this.dilithiumSignature = dilithiumSignature;
+        }
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -37,26 +47,16 @@ public class ResourceServerConfig {
                                                 .requestMatchers("/actuator/health", "/error").permitAll()
                                                 .anyRequest().authenticated())
 
-                                // Configuração como Resource Server com validação de certificado
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter())
-                                                                .decoder(jwtDecoder()) // Decoder customizado com
-                                                                                       // validação
-                                                                                       // de certificado
-                                                ))
+                                                                .decoder(jwtDecoder())))
 
-                                // Adiciona filtro de validação de consentimento
                                 .addFilterAfter(
                                                 new ConsentValidationFilter(consentValidationService),
                                                 UsernamePasswordAuthenticationFilter.class)
 
-                                // Adiciona suporte a autenticação X.509
-                                .x509(x509 -> x509
-                                                .subjectPrincipalRegex("CN=(.*?)(?:,|$)"))
-
-                                // Stateless (sem sessão)
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
@@ -70,16 +70,25 @@ public class ResourceServerConfig {
                 return new JwtAuthenticationConverter();
         }
 
-        /**
-         * JWT Decoder com validação de Certificate Binding
-         */
         @Bean
         public JwtDecoder jwtDecoder() {
-                NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation("https://localhost:9000");
+                try {
+                        SignatureAlgorithm algorithm = getActiveAlgorithm();
 
-                // Adiciona validador de certificate binding
-                jwtDecoder.setJwtValidator(certificateValidator);
+                        if (algorithm.getPublicKey() == null) {
+                                algorithm.generateKeyPair();
+                        }
 
-                return jwtDecoder;
+                        return new CustomJwtDecoder(algorithm);
+
+                } catch (Exception e) {
+                        throw new RuntimeException("Failed to create JWT decoder", e);
+                }
+        }
+
+        private SignatureAlgorithm getActiveAlgorithm() {
+                return "DILITHIUM".equalsIgnoreCase(algorithmName)
+                                ? dilithiumSignature
+                                : rsaSignature;
         }
 }
