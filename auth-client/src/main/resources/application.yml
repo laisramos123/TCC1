@@ -1,35 +1,183 @@
 server:
-  port: 8080
+  port: 8081
   ssl:
-    enabled: false # Para desenvolvimento
+    enabled: true
+    key-store: classpath:certificates/auth-client-keystore.p12
+    key-store-password: changeit
+    key-store-type: PKCS12
+    key-alias: auth-client
+
+    trust-store: classpath:certificates/truststore.p12
+    trust-store-password: changeit
+    trust-store-type: PKCS12
+
+    client-auth: want
+    enabled-protocols: TLSv1.2,TLSv1.3
 
 spring:
   application:
-    name: client-tpp
+    name: auth-client
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/tpp_db
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+  # ========================================
+  # 🔒 OAUTH2 CLIENT CONFIGURATION
+  # ========================================
+  security:
+    oauth2:
+      client:
+        registration:
+          tpp-client:
+            client-id: oauth-client
+            client-secret: oauth-client-secret
+            authorization-grant-type: authorization_code
+            redirect-uri: https://localhost:8081/login/oauth2/code/tpp-client
+            scope: openid,accounts,transactions,credit-cards-accounts
+            client-name: TCC Open Banking Client
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+        provider:
+          tpp-client:
+            authorization-uri: https://localhost:8080/oauth2/authorize
+            token-uri: https://localhost:8080/oauth2/token
+            user-info-uri: https://localhost:8080/userinfo
+            jwk-set-uri: https://localhost:8080/.well-known/jwks.json
+            user-name-attribute: sub
 
-# Configuração do Cliente TPP
-tpp:
-  client-id: tpp-client-id
-  client-secret: tpp-client-secret
-  redirect-uri: http://localhost:8080/callback
+  # ========================================
+  # 🌐 THYMELEAF E WEB
+  # ========================================
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+    encoding: UTF-8
 
-  # URLs do banco
-  bank:
-    authorization-server: http://localhost:9000
-    resource-server: http://localhost:9001
+  web:
+    resources:
+      static-locations: classpath:/static/
 
+# ========================================
+# 🏦 CONFIGURAÇÕES OPEN BANKING
+# ========================================
+open-banking:
+  client:
+    # URLs dos serviços externos
+    auth-server:
+      base-url: https://localhost:8080
+      consent-endpoint: /consents
+      authorization-endpoint: /oauth2/authorize
+      token-endpoint: /oauth2/token
+
+    resource-server:
+      base-url: https://localhost:8082
+      accounts-endpoint: /accounts
+      transactions-endpoint: /transactions
+      credit-cards-endpoint: /credit-cards
+
+  # ========================================
+  # 📝 CONFIGURAÇÕES DE CONSENTIMENTO
+  # ========================================
+  consent:
+    default-permissions:
+      - ACCOUNTS_READ
+      - ACCOUNTS_BALANCES_READ
+      - TRANSACTIONS_READ
+      - CREDIT_CARDS_ACCOUNTS_READ
+    default-expiration-days: 60
+    transaction-history-days: 365
+
+# ========================================
+# 🔒 CONFIGURAÇÃO mTLS
+# ========================================
+open-finance:
+  mtls:
+    enabled: true
+    client-certificate-path: classpath:certificates/auth-client-keystore.p12
+    client-certificate-password: changeit
+
+# ========================================
+# 📋 LOGGING
+# ========================================
 logging:
   level:
     root: INFO
-    com.tpp.client: DEBUG
+    com.example.auth_client: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: DEBUG
+    javax.net.ssl: DEBUG
+    org.springframework.security.oauth2: DEBUG
+
+---
+# ========================================
+# 🐳 DOCKER PROFILE
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  # ✅ OAuth2 URLs internas do Docker
+  security:
+    oauth2:
+      client:
+        registration:
+          tpp-client:
+            redirect-uri: http://localhost:8081/login/oauth2/code/tpp-client
+
+        provider:
+          tpp-client:
+            authorization-uri: http://auth-server:8080/oauth2/authorize
+            token-uri: http://auth-server:8080/oauth2/token
+            user-info-uri: http://auth-server:8080/userinfo
+            jwk-set-uri: http://auth-server:8080/.well-known/jwks.json
+
+# ✅ URLs internas do Docker
+open-banking:
+  client:
+    auth-server:
+      base-url: http://auth-server:8080
+
+    resource-server:
+      base-url: http://resource-server:8082
+
+# ✅ Simplificar SSL para Docker
+server:
+  ssl:
+    enabled: false
+
+---
+# ========================================
+# 🧪 PROFILE DE TESTES
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  security:
+    oauth2:
+      client:
+        registration:
+          tpp-client:
+            client-id: test-client
+            client-secret: test-secret
+            redirect-uri: http://localhost:8081/login/oauth2/code/tpp-client
+
+        provider:
+          tpp-client:
+            authorization-uri: http://localhost:8080/oauth2/authorize
+            token-uri: http://localhost:8080/oauth2/token
+
+open-banking:
+  client:
+    auth-server:
+      base-url: http://localhost:8080
+    resource-server:
+      base-url: http://localhost:8082
+
+server:
+  ssl:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.example.auth_client: INFO

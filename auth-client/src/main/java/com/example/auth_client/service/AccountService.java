@@ -1,11 +1,11 @@
 package com.example.auth_client.service;
 
+import com.example.auth_client.dto.OpenBankingAccountResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import com.example.auth_client.dto.OpenBankingAccountResponse;
 
 import java.util.UUID;
 
@@ -15,14 +15,14 @@ public class AccountService {
     @Value("${tpp.bank.resource-server}")
     private String resourceServer;
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate restTemplate; // mTLS
 
-    public AccountService(RestTemplate restTemplate) {
+    public AccountService(@Qualifier("mtlsRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     /**
-     * PASSO 4: Busca contas usando access token
+     * PASSO 4: Busca contas usando access token (COM mTLS)
      */
     public OpenBankingAccountResponse getAccounts(String accessToken) {
 
@@ -34,6 +34,7 @@ public class AccountService {
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
+        // RestTemplate usa mTLS automaticamente
         ResponseEntity<OpenBankingAccountResponse> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -44,7 +45,7 @@ public class AccountService {
     }
 
     /**
-     * Busca saldo de uma conta
+     * Busca saldo de uma conta (COM mTLS)
      */
     public Object getAccountBalance(String accountId, String accessToken) {
 

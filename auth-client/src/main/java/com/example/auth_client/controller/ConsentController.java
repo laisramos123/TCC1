@@ -39,6 +39,7 @@ public class ConsentController {
             HttpSession session) {
 
         try {
+
             // PASSO 1: Criar consentimento no banco
             ConsentResponse consent = consentService.createConsent(cpf, permissions);
 

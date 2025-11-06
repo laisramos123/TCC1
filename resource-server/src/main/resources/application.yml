@@ -1,17 +1,38 @@
 server:
-  port: 9001
+  port: 8082
   ssl:
-    enabled: false # Para desenvolvimento
+    enabled: true
+    key-store: classpath:certificates/resource-server-keystore.p12
+    key-store-password: changeit
+    key-store-type: PKCS12
+    key-alias: resource-server
+
+    trust-store: classpath:certificates/truststore.p12
+    trust-store-password: changeit
+    trust-store-type: PKCS12
+
+    client-auth: want
+    enabled-protocols: TLSv1.2,TLSv1.3
 
 spring:
   application:
     name: resource-server
 
+  # ========================================
+  # 🗃️ DATABASE - H2 para desenvolvimento local
+  # ========================================
   datasource:
-    url: jdbc:postgresql://localhost:5432/resourceserver_db
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:file:./data/resourcedb;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+  h2:
+    console:
+      enabled: true
+      path: /resource-h2-console
+      settings:
+        web-allow-others: true
 
   jpa:
     hibernate:
@@ -20,22 +41,145 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
 
-  # Configuração OAuth2 Resource Server
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+
+  # ========================================
+  # 🔒 OAUTH2 RESOURCE SERVER
+  # ========================================
   security:
     oauth2:
       resourceserver:
         jwt:
-          # JWK Set URI do Authorization Server
-          jwk-set-uri: http://localhost:9000/oauth2/jwks
-          issuer-uri: http://localhost:9000
+          issuer-uri: https://localhost:8080
+          jwk-set-uri: https://localhost:8080/.well-known/jwks.json
 
-# Configuração do Authorization Server (para validar consent)
-authorization-server:
-  base-url: http://localhost:9000
+# ========================================
+# 🏦 CONFIGURAÇÕES OPEN BANKING
+# ========================================
+open-banking:
+  resource-server:
+    base-url: https://localhost:8082
 
+  # Configurações de consent validation
+  consent:
+    validation:
+      enabled: true
+      auth-server-url: https://localhost:8080
+
+# ========================================
+# 🔒 CONFIGURAÇÃO mTLS
+# ========================================
+open-finance:
+  mtls:
+    enabled: true
+    client-certificate-path: classpath:certificates/resource-server-keystore.p12
+    client-certificate-password: changeit
+
+# ========================================
+# 📋 LOGGING
+# ========================================
 logging:
   level:
     root: INFO
-    org.springframework.security: DEBUG
-    com.bank.resourceserver: DEBUG
+    com.example.resource_server: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: DEBUG
+    javax.net.ssl: DEBUG
+
+---
+# ========================================
+# 🐘 POSTGRESQL - DOCKER PROFILE
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  # ✅ PostgreSQL para containers
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/resourcedb}
+    username: ${DATABASE_USERNAME:tcc_user}
+    password: ${DATABASE_PASSWORD:tcc_password}
+    driver-class-name: org.postgresql.Driver
+
+  # ✅ Configurações JPA para PostgreSQL
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    defer-datasource-initialization: false
+
+  # ✅ Desabilitar H2 console
+  h2:
+    console:
+      enabled: false
+
+  sql:
+    init:
+      mode: never
+
+  # ✅ OAuth2 URLs internas do Docker
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth-server:8080
+          jwk-set-uri: http://auth-server:8080/.well-known/jwks.json
+
+# ✅ URLs internas do Docker
+open-banking:
+  resource-server:
+    base-url: http://resource-server:8082
+
+  consent:
+    validation:
+      auth-server-url: http://auth-server:8080
+
+# ✅ Simplificar SSL para Docker
+server:
+  ssl:
+    enabled: false
+
+---
+# ========================================
+# 🧪 PROFILE DE TESTES
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:h2:mem:testresourcedb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  h2:
+    console:
+      enabled: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080
+
+server:
+  ssl:
+    enabled: false

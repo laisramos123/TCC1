@@ -1,10 +1,10 @@
-package com.example.resource_server.config;
+package com.example.auth_client.config;
 
-import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.TrustStrategy;
@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.web.authentication.preauth.x509.SubjectDnX509PrincipalExtractor;
-import org.springframework.security.web.authentication.preauth.x509.X509PrincipalExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.SSLContext;
@@ -22,57 +20,63 @@ import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
 /**
- * Configuração mTLS para Resource Server usando HttpClient 5
+ * Configuração mTLS para TPP Client usando HttpClient 5
  */
 @Configuration
 public class MtlsConfig {
 
-    @Value("${server.ssl.key-store}")
-    private String keyStorePath;
+    @Value("${open-finance.mtls.client-certificate-path:classpath:certificates/tpp-client-keystore.p12}")
+    private String clientCertPath;
 
-    @Value("${server.ssl.key-store-password}")
-    private String keyStorePassword;
+    @Value("${open-finance.mtls.client-certificate-password:changeit}")
+    private String clientCertPassword;
 
-    @Value("${server.ssl.trust-store}")
+    @Value("${server.ssl.trust-store:classpath:certificates/truststore.p12}")
     private String trustStorePath;
 
-    @Value("${server.ssl.trust-store-password}")
+    @Value("${server.ssl.trust-store-password:changeit}")
     private String trustStorePassword;
 
     /**
-     * RestTemplate configurado com mTLS para chamar Authorization Server
+     * RestTemplate configurado com mTLS usando HttpClient 5
      */
     @Bean
     public RestTemplate mtlsRestTemplate() throws Exception {
 
-        // Carrega KeyStore (certificado do cliente)
+        // Carrega certificado do cliente (KeyStore)
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        try (FileInputStream kis = new FileInputStream(resolveClasspath(keyStorePath))) {
-            keyStore.load(kis, keyStorePassword.toCharArray());
+        String keyStoreFile = resolveClasspath(clientCertPath);
+        try (FileInputStream kis = new FileInputStream(keyStoreFile)) {
+            keyStore.load(kis, clientCertPassword.toCharArray());
         }
 
-        // Carrega TrustStore (certificados confiáveis)
+        // Carrega certificados confiáveis (TrustStore)
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
-        try (FileInputStream tis = new FileInputStream(resolveClasspath(trustStorePath))) {
+        String trustStoreFile = resolveClasspath(trustStorePath);
+        try (FileInputStream tis = new FileInputStream(trustStoreFile)) {
             trustStore.load(tis, trustStorePassword.toCharArray());
         }
 
-        // Configura SSL Context
+        // Configura SSL Context com mTLS
         SSLContext sslContext = SSLContextBuilder.create()
-                .loadKeyMaterial(keyStore, keyStorePassword.toCharArray())
+                .loadKeyMaterial(keyStore, clientCertPassword.toCharArray())
                 .loadTrustMaterial(trustStore, new TrustStrategy() {
                     @Override
                     public boolean isTrusted(X509Certificate[] chain, String authType) {
-                        return true;
+                        return true; // Para DEV - validar certificados em produção
                     }
                 })
                 .build();
 
         // Configura Socket Factory
-        SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
+        // ATENÇÃO: NoopHostnameVerifier apenas para DEV!
+        SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                sslContext,
+                NoopHostnameVerifier.INSTANCE // REMOVER EM PRODUÇÃO
+        );
 
         // Configura Connection Manager
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+        HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(socketFactory)
                 .build();
 
@@ -81,21 +85,19 @@ public class MtlsConfig {
                 .setConnectionManager(connectionManager)
                 .build();
 
-        // Cria RestTemplate
-        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setHttpClient(httpClient);
+        // Configura RestTemplate
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        factory.setConnectTimeout(10000); // 10 segundos
 
         return new RestTemplate(factory);
     }
 
     /**
-     * Extrator de principal do certificado X.509
+     * RestTemplate padrão (sobrescreve o bean original)
      */
     @Bean
-    public X509PrincipalExtractor principalExtractor() {
-        SubjectDnX509PrincipalExtractor extractor = new SubjectDnX509PrincipalExtractor();
-        extractor.setSubjectDnRegex("CN=(.*?)(?:,|$)");
-        return extractor;
+    public RestTemplate restTemplate() throws Exception {
+        return mtlsRestTemplate();
     }
 
     /**

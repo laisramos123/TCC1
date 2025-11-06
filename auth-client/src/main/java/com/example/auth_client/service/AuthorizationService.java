@@ -3,10 +3,12 @@ package com.example.auth_client.service;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.auth_client.dto.ConsentResponse;
 
+@Service
 public class AuthorizationService {
 
     @Value("${tpp.client-id}")

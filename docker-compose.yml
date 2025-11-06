@@ -1,22 +1,141 @@
 # docker-compose.yml
+version: '3.8'
+
 services:
+  # ========================================
+  # 🗃️ BANCO DE DADOS POSTGRESQL
+  # ========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: tcc1-postgres
+    environment:
+      POSTGRES_DB: tcc_openbanking
+      POSTGRES_USER: tcc_user
+      POSTGRES_PASSWORD: tcc_password
+      POSTGRES_MULTIPLE_DATABASES: authdb,resourcedb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tcc_user -d tcc_openbanking"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tcc-network
+
+  # ========================================
+  # 🔐 AUTH SERVER
+  # ========================================
   auth-server:
-    build: 
-      context: ./auth-server     
-      dockerfile: Dockerfile
+    build: ./auth-server
+    container_name: tcc1-auth-server
     ports:
       - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DATABASE_URL: jdbc:postgresql://postgres:5432/authdb
+      DATABASE_USERNAME: tcc_user
+      DATABASE_PASSWORD: tcc_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - auth_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tcc-network
 
+  # ========================================
+  # 📊 RESOURCE SERVER  
+  # ========================================
   resource-server:
-    build: 
-      context: ./resource-server   
-      dockerfile: Dockerfile
+    build: ./resource-server
+    container_name: tcc1-resource-server
     ports:
       - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DATABASE_URL: jdbc:postgresql://postgres:5432/resourcedb
+      DATABASE_USERNAME: tcc_user
+      DATABASE_PASSWORD: tcc_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-server:
+        condition: service_healthy
+    volumes:
+      - resource_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tcc-network
 
+  # ========================================
+  # 💻 AUTH CLIENT
+  # ========================================
   auth-client:
-    build: 
-      context: ./auth-client     
-      dockerfile: Dockerfile
+    build: ./auth-client
+    container_name: tcc1-auth-client
     ports:
       - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      auth-server:
+        condition: service_healthy
+      resource-server:
+        condition: service_healthy
+    volumes:
+      - client_logs:/app/logs
+    networks:
+      - tcc-network
+
+  # ========================================
+  # 🔍 PGADMIN (Opcional - Gerenciamento DB)
+  # ========================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tcc1-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tcc.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - tcc-network
+
+# ========================================
+# 📂 VOLUMES PERSISTENTES
+# ========================================
+volumes:
+  postgres_data:
+    driver: local
+  auth_logs:
+    driver: local
+  resource_logs:
+    driver: local
+  client_logs:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# ========================================
+# 🌐 REDE INTERNA
+# ========================================
+networks:
+  tcc-network:
+    driver: bridge

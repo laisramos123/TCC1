@@ -1,8 +1,12 @@
 package com.example.auth_server.config;
 
+import com.example.auth_server.security.MtlsAuthenticationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -12,25 +16,27 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.preauth.x509.X509AuthenticationFilter;
 
-/**
- * Configuração de segurança geral (login, etc)
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+        @Autowired
+        private MtlsAuthenticationProvider mtlsAuthenticationProvider;
+
+        @Autowired
+        private X509AuthenticationFilter x509AuthenticationFilter;
+
         /**
-         * Security filter chain padrão (login form)
+         * Security filter chain com suporte a mTLS
          */
         @Bean
         @Order(2)
-        public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
-                        throws Exception {
+        public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
                 http
-                                .authorizeHttpRequests((authorize) -> authorize
-                                                // Endpoints públicos
+                                .authorizeHttpRequests(authorize -> authorize
                                                 .requestMatchers(
                                                                 "/",
                                                                 "/login",
@@ -38,9 +44,10 @@ public class SecurityConfig {
                                                                 "/oauth2/jwks",
                                                                 "/open-banking/consents/v2/consents/**")
                                                 .permitAll()
-
-                                                // Tudo mais precisa autenticação
                                                 .anyRequest().authenticated())
+
+                                // Adiciona filtro X.509 para mTLS
+                                .addFilter(x509AuthenticationFilter)
 
                                 // Form login
                                 .formLogin(form -> form
@@ -56,12 +63,19 @@ public class SecurityConfig {
         }
 
         /**
-         * Usuários do banco (clientes finais)
-         * Em produção: buscar do banco de dados
+         * Configura Authentication Manager com mTLS provider
          */
         @Bean
-        public UserDetailsService userDetailsService() {
+        public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+                AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
+                authBuilder.authenticationProvider(mtlsAuthenticationProvider);
+
+                return authBuilder.build();
+        }
+
+        @Bean
+        public UserDetailsService userDetailsService() {
                 UserDetails user = User.builder()
                                 .username("joao.silva")
                                 .password(passwordEncoder().encode("senha123"))
@@ -77,9 +91,6 @@ public class SecurityConfig {
                 return new InMemoryUserDetailsManager(user, admin);
         }
 
-        /**
-         * Password encoder
-         */
         @Bean
         public PasswordEncoder passwordEncoder() {
                 return new BCryptPasswordEncoder();

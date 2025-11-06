@@ -1,13 +1,13 @@
 package com.example.auth_client.service;
 
+import com.example.auth_client.dto.TokenResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import com.example.auth_client.dto.TokenResponse;
 
 @Service
 public class TokenService {
@@ -24,14 +24,14 @@ public class TokenService {
     @Value("${tpp.bank.authorization-server}")
     private String authorizationServer;
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate restTemplate; // mTLS
 
-    public TokenService(RestTemplate restTemplate) {
+    public TokenService(@Qualifier("mtlsRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     /**
-     * PASSO 3: Troca authorization code por tokens
+     * PASSO 3: Troca authorization code por tokens (COM mTLS)
      */
     public TokenResponse exchangeCodeForToken(String code, String codeVerifier) {
 
@@ -49,6 +49,7 @@ public class TokenService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
+        // RestTemplate usa mTLS + envia certificado automaticamente
         ResponseEntity<TokenResponse> response = restTemplate.postForEntity(
                 tokenEndpoint,
                 request,
@@ -58,7 +59,7 @@ public class TokenService {
     }
 
     /**
-     * Renova access token usando refresh token
+     * Renova access token usando refresh token (COM mTLS)
      */
     public TokenResponse refreshToken(String refreshToken) {
 
