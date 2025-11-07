@@ -1,91 +1,93 @@
-// package com.example.auth_server.controller;
+// auth-server/controller/DilithiumResource.java
 
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.security.access.prepost.PreAuthorize;
-// import org.springframework.web.bind.annotation.*;
+import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
-// import com.example.auth_server.dilithium.DilithiumSignature;
-// import com.example.auth_server.dto.SignRequestDTO;
-// import com.example.auth_server.dto.VerificationRequestDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-// import java.nio.charset.StandardCharsets;
-// import java.util.Base64;
-// import java.util.HashMap;
-// import java.util.Map;
+import com.example.auth_server.dilithium.DilithiumSignature;
+import com.example.auth_server.dto.VerificationRequestDTO;
 
-// @RestController
-// @RequestMapping("/api/v1/dilithium")
-// public class DilithiumResource {
+@RestController
+@RequestMapping("/api/v1/dilithium")
+public class DilithiumResource {
 
-// @Autowired
-// private DilithiumSignature dilithiumSignature;
+    @Autowired
+    private DilithiumSignature dilithiumSignature;
 
-// @PostMapping("/verificar-assinatura")
-// @PreAuthorize("hasRole('ADMIN') or hasAuthority('SCOPE_signature:verify')")
-// public ResponseEntity<Map<String, Object>> verificarAssinatura(@RequestBody
-// VerificationRequestDTO request) {
-// Map<String, Object> response = new HashMap<>();
+    @PostMapping("/public/assinar")
+    public ResponseEntity<Map<String, Object>> assinarDados(
+            @RequestBody SignRequestDTO request) {
 
-// try {
+        Map<String, Object> response = new HashMap<>();
 
-// byte[] data = Base64.getDecoder().decode(request.getData());
-// byte[] signature = Base64.getDecoder().decode(request.getSignature());
-// byte[] publicKeyBytes = Base64.getDecoder().decode(request.getPublicKey());
+        try {
+            if (dilithiumSignature.getPublicKey() == null) {
+                dilithiumSignature.keyPair();
+            }
 
-// boolean isValid = data.length > 0 && signature.length > 0;
+            byte[] data = request.getData().getBytes(StandardCharsets.UTF_8);
+            byte[] signature = dilithiumSignature.sign(data);
 
-// response.put("valid", isValid);
-// response.put("algorithm", "Dilithium3");
-// response.put("timestamp", System.currentTimeMillis());
+            response.put("signature", Base64.getEncoder().encodeToString(signature));
+            response.put("publicKey",
+                    Base64.getEncoder().encodeToString(
+                            dilithiumSignature.getPublicKey().getEncoded()));
+            response.put("algorithm", "Dilithium3");
+            response.put("timestamp", System.currentTimeMillis());
 
-// return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
 
-// } catch (Exception e) {
-// response.put("error", "Erro ao verificar assinatura: " + e.getMessage());
-// return ResponseEntity.badRequest().body(response);
-// }
-// }
+        } catch (Exception e) {
+            response.put("error", "Erro ao assinar: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 
-// @PostMapping("/assinar")
-// @PreAuthorize("hasRole('ADMIN') or hasAuthority('SCOPE_signature:create')")
-// public ResponseEntity<Map<String, Object>> assinarDados(@RequestBody
-// SignRequestDTO request) {
-// Map<String, Object> response = new HashMap<>();
+    @PostMapping("/public/verificar")
+    public ResponseEntity<Map<String, Object>> verificarAssinatura(
+            @RequestBody VerificationRequestDTO request) {
 
-// try {
+        Map<String, Object> response = new HashMap<>();
 
-// if (dilithiumSignature.getPublicKey() == null) {
-// dilithiumSignature.keyPair();
-// }
+        try {
+            byte[] data = Base64.getDecoder().decode(request.getData());
+            byte[] signature = Base64.getDecoder().decode(request.getSignature());
+            byte[] publicKeyBytes = Base64.getDecoder().decode(request.getPublicKey());
 
-// byte[] data = request.getData().getBytes(StandardCharsets.UTF_8);
-// byte[] signature = dilithiumSignature.sign(data);
+            PublicKey publicKey = dilithiumSignature
+                    .loadPublicKeyFromBase64(request.getPublicKey());
 
-// response.put("signature", Base64.getEncoder().encodeToString(signature));
-// response.put("publicKey",
-// Base64.getEncoder().encodeToString(dilithiumSignature.getPublicKey().getEncoded()));
-// response.put("algorithm", "Dilithium3");
-// response.put("timestamp", System.currentTimeMillis());
+            boolean isValid = dilithiumSignature.verify(data, signature, publicKey);
 
-// return ResponseEntity.ok(response);
+            response.put("valid", isValid);
+            response.put("algorithm", "Dilithium3");
+            response.put("timestamp", System.currentTimeMillis());
 
-// } catch (Exception e) {
-// response.put("error", "Erro ao assinar dados: " + e.getMessage());
-// return ResponseEntity.badRequest().body(response);
-// }
-// }
+            return ResponseEntity.ok(response);
 
-// @GetMapping("/info")
-// public ResponseEntity<Map<String, Object>> getAlgorithmInfo() {
-// Map<String, Object> info = new HashMap<>();
+        } catch (Exception e) {
+            response.put("error", "Erro ao verificar: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 
-// info.put("algorithm", "Dilithium");
-// info.put("securityLevel", "192-bit (Level 3)");
-// info.put("quantumResistant", true);
-// info.put("standardized", "NIST PQC Standard");
-
-// return ResponseEntity.ok(info);
-// }
-
-// }
+    @GetMapping("/info")
+    public ResponseEntity<Map<String, Object>> getAlgorithmInfo() {
+        Map<String, Object> info = new HashMap<>();
+        info.put("algorithm", "Dilithium");
+        info.put("securityLevel", "192-bit (Level 3)");
+        info.put("quantumResistant", true);
+        info.put("standardized", "NIST PQC Standard");
+        return ResponseEntity.ok(info);
+    }
+}

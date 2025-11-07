@@ -20,10 +20,6 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
 
 import jakarta.annotation.PostConstruct;
 
@@ -38,9 +34,9 @@ public class DilithiumSignature {
         if (Security.getProvider("BCPQC") == null) {
             Security.addProvider(new BouncyCastleProvider());
             Security.addProvider(new BouncyCastlePQCProvider());
-            logger.info("Bouncy Castle providers added.");
+            logger.info("Bouncy Castle providers adicionados.");
         } else {
-            logger.debug("📋 Bouncy Castle providers já estavam carregados");
+            logger.debug("  Bouncy Castle providers já estavam carregados");
         }
     }
 
@@ -118,8 +114,14 @@ public class DilithiumSignature {
 
     }
 
-    public byte[] sign(byte[] data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sign'");
+    public byte[] sign(byte[] data) throws Exception {
+        if (keyPair == null) {
+            keyPair();
+        }
+
+        Signature signature = Signature.getInstance("Dilithium", "BCPQC");
+        signature.initSign(keyPair.getPrivate());
+        signature.update(data);
+        return signature.sign();
     }
 }
