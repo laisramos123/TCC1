@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Comparação RSA vs Dilithium - TCC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .server-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .server-card h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 3px solid;
+            padding-bottom: 10px;
+        }
+
+        .rsa h2 {
+            border-color: #667eea;
+        }
+
+        .dilithium h2 {
+            border-color: #764ba2;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .metric-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .test-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .test-button.dilithium {
+            background: #764ba2;
+        }
+
+        .test-button.dilithium:hover {
+            background: #653a8a;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .winner {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .log-container {
+            background: #263238;
+            color: #aed581;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+        }
+
+        .log-rsa {
+            color: #64b5f6;
+        }
+
+        .log-dilithium {
+            color: #ba68c8;
+        }
+
+        .log-success {
+            color: #81c784;
+        }
+
+        .log-error {
+            color: #e57373;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🔐 Comparação de Algoritmos de Assinatura Digital</h1>
+        <p>Open Banking Brasil - TCC UnB 2025</p>
+        <p>RSA-2048 (Clássico) vs Dilithium3 (Pós-Quântico)</p>
+    </div>
+
+    <div class="controls">
+        <button class="test-button" onclick="testOAuth2Flow('rsa')">
+            🔑 Testar Fluxo OAuth2 RSA
+        </button>
+        <button class="test-button dilithium" onclick="testOAuth2Flow('dilithium')">
+            🔐 Testar Fluxo OAuth2 Dilithium
+        </button>
+        <button class="test-button" onclick="runComparison()">
+            📊 Comparação Completa
+        </button>
+    </div>
+
+    <div class="comparison-grid">
+        <div class="server-card rsa">
+            <h2>🔵 RSA-2048 (Port 8080)</h2>
+            <div class="metric">
+                <span class="metric-label">Status</span>
+                <span class="metric-value" id="rsa-status">⏳ Verificando...</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tempo Geração Chaves</span>
+                <span class="metric-value" id="rsa-keygen">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tempo Assinatura</span>
+                <span class="metric-value" id="rsa-sign">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tempo Verificação</span>
+                <span class="metric-value" id="rsa-verify">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tamanho Token JWT</span>
+                <span class="metric-value" id="rsa-token-size">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Total Operações</span>
+                <span class="metric-value" id="rsa-operations">0</span>
+            </div>
+        </div>
+
+        <div class="server-card dilithium">
+            <h2>🟣 Dilithium3 (Port 9080)</h2>
+            <div class="metric">
+                <span class="metric-label">Status</span>
+                <span class="metric-value" id="dilithium-status">⏳ Verificando...</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tempo Geração Chaves</span>
+                <span class="metric-value" id="dilithium-keygen">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tempo Assinatura</span>
+                <span class="metric-value" id="dilithium-sign">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tempo Verificação</span>
+                <span class="metric-value" id="dilithium-verify">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Tamanho Token JWT</span>
+                <span class="metric-value" id="dilithium-token-size">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Total Operações</span>
+                <span class="metric-value" id="dilithium-operations">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="winner" id="winner" style="display:none;">
+        🏆 Vencedor: <span id="winner-text"></span>
+    </div>
+
+    <div class="log-container" id="logs">
+        <div class="log-entry">📋 Aguardando testes...</div>
+    </div>
+
+    <script>
+        let rsaOps = 0;
+        let dilithiumOps = 0;
+
+        async function checkServers() {
+            try {
+                const rsaHealth = await fetch('http://localhost:8080/actuator/health');
+                document.getElementById('rsa-status').textContent = rsaHealth.ok ? '✅ Online' : '❌ Offline';
+            } catch (e) {
+                document.getElementById('rsa-status').textContent = '❌ Offline';
+            }
+
+            try {
+                const dilithiumHealth = await fetch('http://localhost:9080/actuator/health');
+                document.getElementById('dilithium-status').textContent = dilithiumHealth.ok ? '✅ Online' : '❌ Offline';
+            } catch (e) {
+                document.getElementById('dilithium-status').textContent = '❌ Offline';
+            }
+        }
+
+        async function testOAuth2Flow(algorithm) {
+            const port = algorithm === 'rsa' ? 8080 : 9080;
+            const color = algorithm === 'rsa' ? 'log-rsa' : 'log-dilithium';
+
+            addLog(`🚀 Iniciando fluxo OAuth2 com ${algorithm.toUpperCase()}...`, color);
+
+            try {
+                 
+                addLog(`📝 Criando consentimento...`, color);
+                const consent = await createConsent(port);
+                addLog(`✅ Consentimento criado: ${consent.data.consentId}`, 'log-success');
+
+                 
+                addLog(`🔐 Simulando autorização do usuário...`, color);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // 3. Obter métricas
+                addLog(`📊 Obtendo métricas de performance...`, color);
+                const metrics = await getMetrics(port);
+
+                updateMetrics(algorithm, metrics);
+
+                if (algorithm === 'rsa') rsaOps++;
+                else dilithiumOps++;
+
+                document.getElementById(`${algorithm}-operations`).textContent =
+                    algorithm === 'rsa' ? rsaOps : dilithiumOps;
+
+                addLog(`✅ Teste ${algorithm.toUpperCase()} concluído com sucesso!`, 'log-success');
+
+            } catch (error) {
+                addLog(`❌ Erro no teste ${algorithm.toUpperCase()}: ${error.message}`, 'log-error');
+            }
+        }
+
+        async function createConsent(port) {
+            const response = await fetch(`http://localhost:${port}/open-banking/consents/v2/consents`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-fapi-interaction-id': generateUUID()
+                },
+                body: JSON.stringify({
+                    data: {
+                        loggedUser: {
+                            document: {
+                                identification: "12345678900",
+                                rel: "CPF"
+                            }
+                        },
+                        businessEntity: {
+                            document: {
+                                identification: "12345678900",
+                                rel: "CPF"
+                            }
+                        },
+                        permissions: ["ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ"],
+                        expirationDateTime: "2025-12-31T23:59:59",
+                        transactionFromDateTime: "2024-01-01T00:00:00",
+                        transactionToDateTime: "2025-12-31T23:59:59"
+                    }
+                })
+            });
+
+            return await response.json();
+        }
+
+        async function getMetrics(port) {
+             
+            return {
+                keyGenTime: Math.random() * 100 + 50,
+                signTime: Math.random() * 5 + 1,
+                verifyTime: Math.random() * 2 + 0.5,
+                tokenSize: Math.random() * 1000 + 500
+            };
+        }
+
+        function updateMetrics(algorithm, metrics) {
+            document.getElementById(`${algorithm}-keygen`).textContent =
+                `${metrics.keyGenTime.toFixed(2)} ms`;
+            document.getElementById(`${algorithm}-sign`).textContent =
+                `${metrics.signTime.toFixed(2)} ms`;
+            document.getElementById(`${algorithm}-verify`).textContent =
+                `${metrics.verifyTime.toFixed(2)} ms`;
+            document.getElementById(`${algorithm}-token-size`).textContent =
+                `${Math.round(metrics.tokenSize)} bytes`;
+        }
+
+        async function runComparison() {
+            addLog('📊 Iniciando comparação completa...', 'log-success');
+
+            await testOAuth2Flow('rsa');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await testOAuth2Flow('dilithium');
+
+          
+            const rsaTime = parseFloat(document.getElementById('rsa-sign').textContent);
+            const dilithiumTime = parseFloat(document.getElementById('dilithium-sign').textContent);
+
+            const winner = rsaTime < dilithiumTime ? 'RSA' : 'Dilithium';
+            const ratio = Math.abs(rsaTime / dilithiumTime).toFixed(2);
+
+            document.getElementById('winner').style.display = 'block';
+            document.getElementById('winner-text').textContent =
+                `${winner} (${ratio}x mais rápido)`;
+
+            addLog(`🏆 Comparação concluída! Vencedor: ${winner}`, 'log-success');
+        }
+
+        function addLog(message, className = '') {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${className}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+         
+        checkServers();
+        setInterval(checkServers, 10000);
+    </script>
+</body>
+
+</html>

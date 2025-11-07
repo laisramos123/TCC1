@@ -1,10 +1,8 @@
-# docker-compose.yml
+ 
 version: '3.8'
 
 services:
-  # ========================================
-  # 🗃️ BANCO DE DADOS POSTGRESQL
-  # ========================================
+  
   postgres:
     image: postgres:15-alpine
     container_name: tcc1-postgres
@@ -26,9 +24,7 @@ services:
     networks:
       - tcc-network
 
-  # ========================================
-  # 🔐 AUTH SERVER
-  # ========================================
+ 
   auth-server:
     build: ./auth-server
     container_name: tcc1-auth-server
@@ -52,9 +48,7 @@ services:
     networks:
       - tcc-network
 
-  # ========================================
-  # 📊 RESOURCE SERVER  
-  # ========================================
+ 
   resource-server:
     build: ./resource-server
     container_name: tcc1-resource-server
@@ -80,9 +74,7 @@ services:
     networks:
       - tcc-network
 
-  # ========================================
-  # 💻 AUTH CLIENT
-  # ========================================
+ 
   auth-client:
     build: ./auth-client
     container_name: tcc1-auth-client
@@ -100,9 +92,7 @@ services:
     networks:
       - tcc-network
 
-  # ========================================
-  # 🔍 PGADMIN (Opcional - Gerenciamento DB)
-  # ========================================
+ 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: tcc1-pgadmin
@@ -118,9 +108,7 @@ services:
     networks:
       - tcc-network
 
-# ========================================
-# 📂 VOLUMES PERSISTENTES
-# ========================================
+ 
 volumes:
   postgres_data:
     driver: local
@@ -133,9 +121,7 @@ volumes:
   pgadmin_data:
     driver: local
 
-# ========================================
-# 🌐 REDE INTERNA
-# ========================================
+ 
 networks:
   tcc-network:
     driver: bridge
