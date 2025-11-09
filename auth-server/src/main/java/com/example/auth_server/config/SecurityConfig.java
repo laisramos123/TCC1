@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.preauth.x509.SubjectDnX509PrincipalExtractor;
 import org.springframework.security.web.authentication.preauth.x509.X509AuthenticationFilter;
 
 @Configuration
@@ -94,5 +95,12 @@ public class SecurityConfig {
         @Bean
         public PasswordEncoder passwordEncoder() {
                 return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+        public X509AuthenticationFilter x509AuthenticationFilter() {
+                X509AuthenticationFilter filter = new X509AuthenticationFilter();
+                filter.setPrincipalExtractor(new SubjectDnX509PrincipalExtractor());
+                return filter;
         }
 }

@@ -7,14 +7,25 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import jakarta.annotation.PostConstruct;
+
 @SpringBootApplication
 public class AuthServerApplication {
 
     public static void main(String[] args) {
-        // Registra os providers Bouncy Castle para criptografia pós-quântica
         Security.addProvider(new BouncyCastleProvider());
         Security.addProvider(new BouncyCastlePQCProvider());
 
         SpringApplication.run(AuthServerApplication.class, args);
+    }
+
+    @PostConstruct
+    public void verifyProviders() {
+        if (Security.getProvider("BC") == null) {
+            throw new RuntimeException("BouncyCastle provider não carregado!");
+        }
+        if (Security.getProvider("BCPQC") == null) {
+            throw new RuntimeException("BouncyCastle PQC provider não carregado!");
+        }
     }
 }

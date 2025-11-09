@@ -11,7 +11,6 @@ server:
     trust-store-password: changeit
     trust-store-type: PKCS12
 
-    # Cliente não exige certificado (client-auth: want ou none)
     client-auth: want
     enabled-protocols: TLSv1.2,TLSv1.3
 
@@ -19,9 +18,6 @@ spring:
   application:
     name: auth-server
 
-  # ========================================
-  # 🗃️ DATABASE - H2 para desenvolvimento local
-  # ========================================
   datasource:
     url: jdbc:h2:file:./data/authdb;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
     driver-class-name: org.h2.Driver
@@ -50,31 +46,21 @@ spring:
       mode: always
       data-locations: classpath:data.sql
 
-# ========================================
-# 🔐 CONFIGURAÇÕES TPP EXISTENTES
-# ========================================
 tpp:
   client-id: tpp-client-id
   client-secret: tpp-client-secret
   redirect-uri: https://localhost:8080/callback
 
-  # URLs do banco (com HTTPS)
   bank:
     authorization-server: https://localhost:9000
     resource-server: https://localhost:9001
 
-# ========================================
-# 🔒 CONFIGURAÇÃO mTLS EXISTENTE
-# ========================================
 open-finance:
   mtls:
     enabled: true
     client-certificate-path: classpath:certificates/tpp-client-keystore.p12
     client-certificate-password: changeit
 
-# ========================================
-# 📋 LOGGING
-# ========================================
 logging:
   level:
     root: INFO
@@ -85,25 +71,20 @@ logging:
     org.springframework.web: DEBUG
 
 ---
-# ========================================
-# 🐘 POSTGRESQL - DOCKER PROFILE
-# ========================================
 spring:
   config:
     activate:
       on-profile: docker
 
-  # ✅ PostgreSQL para containers
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/authdb}
     username: ${DATABASE_USERNAME:tcc_user}
     password: ${DATABASE_PASSWORD:tcc_password}
     driver-class-name: org.postgresql.Driver
 
-  # ✅ Configurações JPA para PostgreSQL
   jpa:
     hibernate:
-      ddl-auto: validate # Schema já criado pelos scripts
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -111,27 +92,19 @@ spring:
         format_sql: true
     defer-datasource-initialization: false
 
-  # ✅ Desabilitar H2 console em produção
   h2:
     console:
       enabled: false
 
-  # ✅ Não executar scripts SQL (já executados na inicialização)
   sql:
     init:
       mode: never
 
-# ========================================
-# 🔒 SSL/mTLS para Docker (opcional)
-# ========================================
 server:
   ssl:
-    enabled: false # Simplificar para Docker, habilitar se necessário
+    enabled: false
 
 ---
-# ========================================
-# 🧪 PROFILE DE TESTES
-# ========================================
 spring:
   config:
     activate:
