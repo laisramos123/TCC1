@@ -1,5 +1,14 @@
 package com.example.auth_server.controller;
 
-public class SignRequestDTO {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SignRequestDTO {
+    private String data;
 }

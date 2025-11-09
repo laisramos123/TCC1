@@ -1,29 +1,36 @@
 package com.example.auth_server.config;
 
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.TrustStrategy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.web.authentication.preauth.x509.SubjectDnX509PrincipalExtractor;
-import org.springframework.security.web.authentication.preauth.x509.X509AuthenticationFilter;
-import org.springframework.security.web.authentication.preauth.x509.X509PrincipalExtractor;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.KeyManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
-import java.util.List;
+import java.security.cert.X509Certificate;
 
 /**
- * Configuração mTLS para Open Finance Brasil
+ * NOVO: Configuração mTLS para Auth Server
+ * Necessário para chamar APIs externas com certificado cliente
  */
 @Configuration
 public class MtlsConfig {
 
-    @Value("${open-finance.mtls.enabled:true}")
-    private boolean mtlsEnabled;
+    @Value("${server.ssl.key-store}")
+    private String keyStorePath;
+
+    @Value("${server.ssl.key-store-password}")
+    private String keyStorePassword;
 
     @Value("${server.ssl.trust-store}")
     private String trustStorePath;
@@ -31,47 +38,63 @@ public class MtlsConfig {
     @Value("${server.ssl.trust-store-password}")
     private String trustStorePassword;
 
-    /**
-     * Filtro de autenticação X.509
-     */
     @Bean
-    public X509AuthenticationFilter x509AuthenticationFilter() {
-        X509AuthenticationFilter filter = new X509AuthenticationFilter();
-        filter.setPrincipalExtractor(principalExtractor());
-        return filter;
-    }
+    public RestTemplate mtlsRestTemplate() throws Exception {
 
-    /**
-     * Extrator de principal do certificado
-     * Extrai o CN (Common Name) do certificado
-     */
-    @Bean
-    public X509PrincipalExtractor principalExtractor() {
-        SubjectDnX509PrincipalExtractor extractor = new SubjectDnX509PrincipalExtractor();
-        extractor.setSubjectDnRegex("CN=(.*?)(?:,|$)");
-        return extractor;
-    }
-
-    /**
-     * Configuração SSL Context customizado
-     */
-    @Bean
-    public SSLContext sslContext() throws Exception {
+        // Carrega KeyStore
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        try (FileInputStream kis = new FileInputStream(resolveClasspath(keyStorePath))) {
+            keyStore.load(kis, keyStorePassword.toCharArray());
+        }
 
         // Carrega TrustStore
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
-        try (FileInputStream fis = new FileInputStream(trustStorePath.replace("classpath:", "src/main/resources/"))) {
-            trustStore.load(fis, trustStorePassword.toCharArray());
+        try (FileInputStream tis = new FileInputStream(resolveClasspath(trustStorePath))) {
+            trustStore.load(tis, trustStorePassword.toCharArray());
         }
 
-        // Configura TrustManager
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(trustStore);
+        // Configura SSL Context
+        SSLContext sslContext = SSLContextBuilder.create()
+                .loadKeyMaterial(keyStore, keyStorePassword.toCharArray())
+                .loadTrustMaterial(trustStore, new TrustStrategy() {
+                    @Override
+                    public boolean isTrusted(X509Certificate[] chain, String authType) {
+                        return true; // DEV only
+                    }
+                })
+                .build();
 
-        // Cria SSL Context
-        SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
-        sslContext.init(null, tmf.getTrustManagers(), null);
+        // Configura Socket Factory (NoopHostnameVerifier apenas para DEV!)
+        SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                sslContext,
+                NoopHostnameVerifier.INSTANCE);
 
-        return sslContext;
+        // Configura Connection Manager
+        HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(socketFactory)
+                .build();
+
+        // Cria HttpClient 5
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .build();
+
+        // Cria RestTemplate
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        factory.setConnectTimeout(10000);
+
+        return new RestTemplate(factory);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() throws Exception {
+        return mtlsRestTemplate();
+    }
+
+    private String resolveClasspath(String path) {
+        if (path.startsWith("classpath:")) {
+            return "src/main/resources/" + path.substring(10);
+        }
+        return path;
     }
 }

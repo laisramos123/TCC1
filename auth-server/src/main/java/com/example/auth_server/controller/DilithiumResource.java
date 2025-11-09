@@ -1,4 +1,4 @@
-// auth-server/controller/DilithiumResource.java
+package com.example.auth_server.controller;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
@@ -62,7 +62,6 @@ public class DilithiumResource {
         try {
             byte[] data = Base64.getDecoder().decode(request.getData());
             byte[] signature = Base64.getDecoder().decode(request.getSignature());
-            byte[] publicKeyBytes = Base64.getDecoder().decode(request.getPublicKey());
 
             PublicKey publicKey = dilithiumSignature
                     .loadPublicKeyFromBase64(request.getPublicKey());
