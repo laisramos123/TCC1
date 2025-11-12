@@ -17,10 +17,15 @@ server:
 spring:
   application:
     name: auth-client
+  config:
+    activate:
+      on-profile: docker
 
-  # ========================================
-  # 🔒 OAUTH2 CLIENT CONFIGURATION
-  # ========================================
+  tpp:
+    bank:
+      authorization-server: http://auth-server:8080
+      resource-server: http://resource-server:8082
+    redirect-uri: http://localhost:8081/callback
   security:
     oauth2:
       client:
