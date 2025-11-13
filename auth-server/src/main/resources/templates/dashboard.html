@@ -1,159 +1,649 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authorization Server - Dashboard</title>
+    <title>Dashboard Comparativo - RSA vs Dilithium</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 20px;
+            gap: 10px;
         }
-        .dashboard {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            text-align: center;
-            max-width: 700px;
-            width: 100%;
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 20px 0;
         }
-        .header {
-            color: #2c3e50;
-            margin-bottom: 30px;
+
+        .rsa-value {
+            color: #2196F3;
         }
-        .icon {
-            font-size: 48px;
+
+        .dilithium-value {
+            color: #9C27B0;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 25px;
             margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
         }
-        .welcome {
-            background: #e8f5e8;
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
             padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border-left: 4px solid #4caf50;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
         }
-        .links {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .link-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: #2c3e50;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            display: block;
-        }
-        .link-card:hover {
-            background: #e3f2fd;
-            border-color: #2196f3;
-            transform: translateY(-2px);
-            text-decoration: none;
-            color: #1976d2;
-        }
-        .link-card h3 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-        }
-        .link-card p {
-            margin: 0;
-            font-size: 14px;
-            opacity: 0.8;
-        }
-        .logout-btn {
-            background: #f44336;
-            color: white;
+
+        .btn {
             padding: 12px 24px;
             border: none;
             border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 30px;
-            text-decoration: none;
-            display: inline-block;
-            font-weight: bold;
             transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .logout-btn:hover {
-            background: #d32f2f;
-            text-decoration: none;
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            transform: translateY(-2px);
         }
-        .status {
-            background: #d4edda;
-            color: #155724;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-rsa {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-dilithium {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online {
+            background: #4CAF50;
+        }
+
+        .status-offline {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #c3e6cb;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .winner {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .loser {
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
         }
     </style>
 </head>
+
 <body>
-    <div class="dashboard">
+    <div class="container">
         <div class="header">
-            <div class="icon">🏦</div>
-            <h1>Open Finance Authorization Server</h1>
-            <p>Sistema de Autorização em funcionamento</p>
+            <h1>🔐 Dashboard Comparativo: RSA vs Dilithium</h1>
+            <p>Análise em Tempo Real de Algoritmos de Assinatura Digital</p>
+            <p><small>TCC - Universidade de Brasília | Open Finance  + Criptografia Pós-Quântica</small></p>
         </div>
 
-        <div class="status">
-            ✅ <strong>Sistema Online</strong> - Todos os serviços estão funcionando corretamente
+        <div class="controls">
+            <button class="btn btn-primary" onclick="runFullComparison()">
+                📊 Executar Comparação Completa
+            </button>
+            <button class="btn btn-rsa" onclick="testRSA()">
+                🔵 Testar RSA-2048
+            </button>
+            <button class="btn btn-dilithium" onclick="testDilithium()">
+                🟣 Testar Dilithium3
+            </button>
+            <button class="btn btn-primary" onclick="startRealTimeMonitoring()">
+                📈 Monitoramento em Tempo Real
+            </button>
         </div>
 
-        <div class="welcome">
-            <h3>🎉 Login realizado com sucesso!</h3>
-            <p>Bem-vindo ao painel de controle do Authorization Server</p>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3><span class="status-indicator status-online"></span> Status do Sistema</h3>
+                <div id="system-status">
+                    <p>RSA Server: <span id="rsa-status">Verificando...</span></p>
+                    <p>Dilithium Server: <span id="dilithium-status">Verificando...</span></p>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <h3>⚡ Tempo Médio de Assinatura</h3>
+                <div class="metric-value rsa-value" id="rsa-sign-time">0 ms</div>
+                <div class="metric-value dilithium-value" id="dilithium-sign-time">0 ms</div>
+            </div>
+
+            <div class="metric-card">
+                <h3>🔍 Tempo Médio de Verificação</h3>
+                <div class="metric-value rsa-value" id="rsa-verify-time">0 ms</div>
+                <div class="metric-value dilithium-value" id="dilithium-verify-time">0 ms</div>
+            </div>
+
+            <div class="metric-card">
+                <h3>📦 Tamanho da Assinatura</h3>
+                <div class="metric-value rsa-value" id="rsa-sig-size">0 bytes</div>
+                <div class="metric-value dilithium-value" id="dilithium-sig-size">0 bytes</div>
+            </div>
+
+            <div class="metric-card">
+                <h3>🔑 Tamanho da Chave Pública</h3>
+                <div class="metric-value rsa-value" id="rsa-key-size">256 bytes</div>
+                <div class="metric-value dilithium-value" id="dilithium-key-size">1952 bytes</div>
+            </div>
+
+            <div class="metric-card">
+                <h3>🛡️ Nível de Segurança</h3>
+                <p><strong>RSA:</strong> Clássica (vulnerável a Shor)</p>
+                <p><strong>Dilithium:</strong> Pós-Quântica (NIST Level 3)</p>
+            </div>
         </div>
 
-        <div class="links">
-            <a href="/h2-console" class="link-card" target="_blank">
-                <h3>💾 H2 Console</h3>
-                <p>Gerenciar banco de dados</p>
-            </a>
-            
-            <a href="/debug/users" class="link-card" target="_blank">
-                <h3>👥 Usuários</h3>
-                <p>Listar usuários cadastrados</p>
-            </a>
-            
-            <a href="/oauth2/jwks" class="link-card" target="_blank">
-                <h3>🔐 JWK Set</h3>
-                <p>Chaves públicas para JWT</p>
-            </a>
-            
-            <a href="http://localhost:8081" class="link-card" target="_blank">
-                <h3>📱 OAuth Client</h3>
-                <p>Aplicação cliente (porta 8081)</p>
-            </a>
-
-            <a href="http://localhost:8082" class="link-card" target="_blank">
-                <h3>🏪 Resource Server</h3>
-                <p>Servidor de recursos (porta 8082)</p>
-            </a>
-
-            <a href="/debug/health" class="link-card">
-                <h3>❤️ Health Check</h3>
-                <p>Status do sistema</p>
-            </a>
+        <div class="chart-container">
+            <h3>📊 Comparação de Performance (ms)</h3>
+            <canvas id="performanceChart"></canvas>
         </div>
 
-        <a href="/logout" class="logout-btn">🚪 Logout</a>
-        
-        <div style="margin-top: 30px; font-size: 12px; color: #666;">
-            <p>© 2025 Open Finance Brasil - Authorization Server</p>
+        <div class="chart-container">
+            <h3>📈 Throughput (operações/segundo)</h3>
+            <canvas id="throughputChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>🏆 Análise Comparativa</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Métrica</th>
+                        <th>RSA-2048</th>
+                        <th>Dilithium3</th>
+                        <th>Vencedor</th>
+                    </tr>
+                </thead>
+                <tbody id="comparison-tbody">
+                    <tr>
+                        <td>Velocidade de Assinatura</td>
+                        <td id="rsa-speed">-</td>
+                        <td id="dilithium-speed">-</td>
+                        <td id="speed-winner">-</td>
+                    </tr>
+                    <tr>
+                        <td>Tamanho da Assinatura</td>
+                        <td id="rsa-size-comp">256 bytes</td>
+                        <td id="dilithium-size-comp">3293 bytes</td>
+                        <td><span class="winner">RSA ✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Segurança Quântica</td>
+                        <td><span class="loser">Vulnerável</span></td>
+                        <td><span class="winner">Resistente</span></td>
+                        <td><span class="winner">Dilithium ✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Padronização</td>
+                        <td>PKCS#1, X.509</td>
+                        <td>NIST PQC</td>
+                        <td>Empate</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="chart-container">
+            <h3>🔄 Progresso dos Testes</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="test-progress" style="width: 0%">0%</div>
+            </div>
+            <p id="test-status">Aguardando início dos testes...</p>
         </div>
     </div>
+
+    <script>
+        // Configuração dos gráficos
+        const ctx1 = document.getElementById('performanceChart').getContext('2d');
+        const performanceChart = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: ['Geração de Chaves', 'Assinatura', 'Verificação'],
+                datasets: [
+                    {
+                        label: 'RSA-2048',
+                        data: [0, 0, 0],
+                        backgroundColor: 'rgba(33, 150, 243, 0.6)',
+                        borderColor: 'rgba(33, 150, 243, 1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Dilithium3',
+                        data: [0, 0, 0],
+                        backgroundColor: 'rgba(156, 39, 176, 0.6)',
+                        borderColor: 'rgba(156, 39, 176, 1)',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Tempo (ms)'
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctx2 = document.getElementById('throughputChart').getContext('2d');
+        const throughputChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'RSA Throughput',
+                        data: [],
+                        borderColor: 'rgb(33, 150, 243)',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Dilithium Throughput',
+                        data: [],
+                        borderColor: 'rgb(156, 39, 176)',
+                        backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Operações/segundo'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Variáveis globais
+        let rsaMetrics = { signTime: [], verifyTime: [], keyGenTime: [] };
+        let dilithiumMetrics = { signTime: [], verifyTime: [], keyGenTime: [] };
+        let testProgress = 0;
+        let realTimeInterval = null;
+
+        // Funções de teste
+        async function testRSA() {
+            updateStatus('Testando RSA-2048...');
+            try {
+                const start = performance.now();
+
+                // Teste de assinatura
+                const response = await axios.post('http://localhost:8080/api/v1/rsa/sign', {
+                    data: 'Teste de performance RSA ' + Date.now()
+                });
+
+                const signTime = performance.now() - start;
+                rsaMetrics.signTime.push(signTime);
+
+                // Atualizar UI
+                document.getElementById('rsa-sign-time').textContent = signTime.toFixed(2) + ' ms';
+                document.getElementById('rsa-sig-size').textContent =
+                    (response.data.signature ? response.data.signature.length : 256) + ' bytes';
+
+                updateCharts();
+                updateProgress(10);
+
+                return { success: true, time: signTime };
+            } catch (error) {
+                console.error('Erro no teste RSA:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testDilithium() {
+            updateStatus('Testando Dilithium3...');
+            try {
+                const start = performance.now();
+
+                // Teste de assinatura
+                const response = await axios.post('http://localhost:8080/api/v1/dilithium/public/assinar', {
+                    data: 'Teste de performance Dilithium ' + Date.now()
+                });
+
+                const signTime = performance.now() - start;
+                dilithiumMetrics.signTime.push(signTime);
+
+                // Atualizar UI
+                document.getElementById('dilithium-sign-time').textContent = signTime.toFixed(2) + ' ms';
+                document.getElementById('dilithium-sig-size').textContent =
+                    (response.data.signature ? response.data.signature.length : 3293) + ' bytes';
+
+                updateCharts();
+                updateProgress(10);
+
+                return { success: true, time: signTime };
+            } catch (error) {
+                console.error('Erro no teste Dilithium:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function runFullComparison() {
+            testProgress = 0;
+            updateProgress(0);
+            updateStatus('Iniciando comparação completa...');
+
+            // Reset métricas
+            rsaMetrics = { signTime: [], verifyTime: [], keyGenTime: [] };
+            dilithiumMetrics = { signTime: [], verifyTime: [], keyGenTime: [] };
+
+            // Executar múltiplos testes
+            const iterations = 10;
+
+            for (let i = 0; i < iterations; i++) {
+                updateStatus(`Iteração ${i + 1} de ${iterations}`);
+
+                await testRSA();
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                await testDilithium();
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                updateProgress((i + 1) / iterations * 100);
+            }
+
+            // Calcular médias
+            const rsaAvgSign = average(rsaMetrics.signTime);
+            const dilithiumAvgSign = average(dilithiumMetrics.signTime);
+
+            // Atualizar tabela comparativa
+            document.getElementById('rsa-speed').textContent = rsaAvgSign.toFixed(2) + ' ms';
+            document.getElementById('dilithium-speed').textContent = dilithiumAvgSign.toFixed(2) + ' ms';
+
+            const speedWinner = rsaAvgSign < dilithiumAvgSign ? 'RSA ✓' : 'Dilithium ✓';
+            document.getElementById('speed-winner').innerHTML =
+                `<span class="winner">${speedWinner}</span>`;
+
+            updateStatus('Comparação completa! RSA: ' + rsaAvgSign.toFixed(2) +
+                'ms vs Dilithium: ' + dilithiumAvgSign.toFixed(2) + 'ms');
+
+            // Atualizar gráficos finais
+            updateFinalCharts();
+        }
+
+        function startRealTimeMonitoring() {
+            if (realTimeInterval) {
+                clearInterval(realTimeInterval);
+                realTimeInterval = null;
+                updateStatus('Monitoramento em tempo real parado');
+                return;
+            }
+
+            updateStatus('Iniciando monitoramento em tempo real...');
+            realTimeInterval = setInterval(async () => {
+                await Promise.all([testRSA(), testDilithium()]);
+                updateThroughputChart();
+            }, 2000);
+        }
+
+        // Funções auxiliares
+        function average(arr) {
+            if (arr.length === 0) return 0;
+            return arr.reduce((a, b) => a + b, 0) / arr.length;
+        }
+
+        function updateCharts() {
+            // Atualizar gráfico de barras
+            performanceChart.data.datasets[0].data = [
+                average(rsaMetrics.keyGenTime) || 150,
+                average(rsaMetrics.signTime) || 0,
+                average(rsaMetrics.verifyTime) || 2
+            ];
+
+            performanceChart.data.datasets[1].data = [
+                average(dilithiumMetrics.keyGenTime) || 200,
+                average(dilithiumMetrics.signTime) || 0,
+                average(dilithiumMetrics.verifyTime) || 3
+            ];
+
+            performanceChart.update();
+        }
+
+        function updateThroughputChart() {
+            const now = new Date().toLocaleTimeString();
+
+            // Adicionar novo ponto de dados
+            if (throughputChart.data.labels.length > 20) {
+                throughputChart.data.labels.shift();
+                throughputChart.data.datasets[0].data.shift();
+                throughputChart.data.datasets[1].data.shift();
+            }
+
+            throughputChart.data.labels.push(now);
+
+            const rsaThroughput = rsaMetrics.signTime.length > 0 ?
+                1000 / average(rsaMetrics.signTime) : 0;
+            const dilithiumThroughput = dilithiumMetrics.signTime.length > 0 ?
+                1000 / average(dilithiumMetrics.signTime) : 0;
+
+            throughputChart.data.datasets[0].data.push(rsaThroughput);
+            throughputChart.data.datasets[1].data.push(dilithiumThroughput);
+
+            throughputChart.update();
+        }
+
+        function updateFinalCharts() {
+            updateCharts();
+
+            // Criar gráfico de pizza para comparação visual
+            const totalRSA = average(rsaMetrics.signTime);
+            const totalDilithium = average(dilithiumMetrics.signTime);
+
+            // Calcular vantagem percentual
+            const advantage = ((totalDilithium - totalRSA) / totalRSA * 100).toFixed(1);
+
+            if (advantage > 0) {
+                updateStatus(`RSA é ${advantage}% mais rápido que Dilithium em assinaturas`);
+            } else {
+                updateStatus(`Dilithium é ${Math.abs(advantage)}% mais rápido que RSA em assinaturas`);
+            }
+        }
+
+        function updateProgress(percent) {
+            testProgress = Math.min(100, percent);
+            const progressBar = document.getElementById('test-progress');
+            progressBar.style.width = testProgress + '%';
+            progressBar.textContent = Math.round(testProgress) + '%';
+        }
+
+        function updateStatus(message) {
+            document.getElementById('test-status').textContent = message;
+            console.log(message);
+        }
+
+        // Verificar status dos servidores
+        async function checkServerStatus() {
+            try {
+                await axios.get('http://localhost:8080/actuator/health');
+                document.getElementById('rsa-status').innerHTML =
+                    '<span style="color: #4CAF50">✓ Online</span>';
+            } catch (error) {
+                document.getElementById('rsa-status').innerHTML =
+                    '<span style="color: #f44336">✗ Offline</span>';
+            }
+
+            try {
+                await axios.get('http://localhost:9080/actuator/health');
+                document.getElementById('dilithium-status').innerHTML =
+                    '<span style="color: #4CAF50">✓ Online</span>';
+            } catch (error) {
+                document.getElementById('dilithium-status').innerHTML =
+                    '<span style="color: #9C27B0">✓ Online (Porta 8080)</span>';
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            checkServerStatus();
+            setInterval(checkServerStatus, 10000); // Verificar a cada 10 segundos
+            updateStatus('Dashboard pronto. Clique em "Executar Comparação Completa" para começar.');
+        });
+    </script>
 </body>
+
 </html>

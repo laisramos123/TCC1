@@ -1,6 +1,8 @@
 spring:
   application:
     name: auth-client
+  profiles:
+    active: docker
 
   security:
     oauth2:
@@ -10,9 +12,8 @@ spring:
             client-id: oauth-client
             client-secret: oauth-client-secret
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:8081/login/oauth2/code/tpp-client
+            redirect-uri: http://localhost:8081/callback
             scope: openid,accounts,transactions,credit-cards-accounts
-
         provider:
           tpp-client:
             authorization-uri: http://auth-server:8080/oauth2/authorize
@@ -26,11 +27,18 @@ server:
     enabled: false
 
 tpp:
+  client-id: oauth-client
+  client-secret: oauth-client-secret
+  redirect-uri: http://localhost:8081/callback
   bank:
     authorization-server: http://auth-server:8080
     resource-server: http://resource-server:8082
+
+authorization-server:
+  base-url: http://auth-server:8080
 
 logging:
   level:
     com.example.auth_client: DEBUG
     org.springframework.security.oauth2: DEBUG
+    org.springframework.web.client: DEBUG

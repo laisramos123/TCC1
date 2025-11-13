@@ -1,7 +1,7 @@
  <!--
-# 🔐 TCC Open Banking + Segurança Pós-Quântica (Dilithium)
+# 🔐 TCC Open Finance  + Segurança Pós-Quântica (Dilithium)
 
-Sistema completo de Open Banking implementando segurança pós-quântica com algoritmos Dilithium para assinatura digital e OAuth2 + OpenID Connect para autorização.
+Sistema completo de Open Finance  implementando segurança pós-quântica com algoritmos Dilithium para assinatura digital e OAuth2 + OpenID Connect para autorização.
 
 ## 🏗️ Arquitetura do Sistema
 
@@ -111,7 +111,7 @@ TCC1/
 | `/api/v1/dilithium/public/verificar` | POST   | Verificação de assinatura |
 | `/api/v1/dilithium/info`             | GET    | Informações do algoritmo  |
 
-### **📊 Resource Server (8082) - APIs Open Banking**
+### **📊 Resource Server (8082) - APIs Open Finance **
 
 | Endpoint               | Método | Descrição                        |
 | ---------------------- | ------ | -------------------------------- |
@@ -170,7 +170,7 @@ curl http://localhost:8080/actuator/health
 2. Aguarde o relatório final (~3-4 minutos)
 3. Acesse: http://localhost:8081
 
-### **Cenário 2: Fluxo OAuth2 Open Banking**
+### **Cenário 2: Fluxo OAuth2 Open Finance **
 
 1. Acessar http://localhost:8081
 2. Clicar em "Login"
@@ -226,7 +226,7 @@ time curl -X POST http://localhost:8080/api/v1/dilithium/public/assinar \
 - **Flow:** Authorization Code + PKCE
 - **Tokens:** JWT assinados com Dilithium
 - **Scopes:** `openid`, `accounts`, `transactions`, `credit-cards`
-- **Compliance:** Open Banking Brasil
+- **Compliance:** Open Finance  Brasil
 
 ### **Tecnologias:**
 
@@ -240,7 +240,7 @@ time curl -X POST http://localhost:8080/api/v1/dilithium/public/assinar \
 
 **Este sistema demonstra:**
 
-- ✅ **Implementação completa** de Open Banking Brasil
+- ✅ **Implementação completa** de Open Finance  Brasil
 - ✅ **Segurança pós-quântica** com algoritmo Dilithium
 - ✅ **OAuth2 + OpenID Connect** padrão da indústria
 - ✅ **Arquitetura microserviços** containerizada

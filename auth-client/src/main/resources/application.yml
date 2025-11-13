@@ -36,7 +36,7 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: https://localhost:8081/login/oauth2/code/tpp-client
             scope: openid,accounts,transactions,credit-cards-accounts
-            client-name: TCC Open Banking Client
+            client-name: TCC Open Finance  Client
 
         provider:
           tpp-client:
@@ -60,7 +60,7 @@ spring:
       static-locations: classpath:/static/
 
 # ========================================
-# 🏦 CONFIGURAÇÕES OPEN BANKING
+# 🏦 CONFIGURAÇÕES Open Finance
 # ========================================
 open-banking:
   client:

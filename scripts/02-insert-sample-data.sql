@@ -12,7 +12,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Inserir cliente OAuth2
 INSERT INTO oauth2_registered_client (id, client_id, client_secret, client_name, authorization_grant_types, redirect_uris, scopes) VALUES
-('client-1', 'oauth-client', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'TCC Open Banking Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client', 'openid,accounts,transactions,credit-cards-accounts')
+('client-1', 'oauth-client', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'TCC Open Finance  Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client', 'openid,accounts,transactions,credit-cards-accounts')
 ON CONFLICT (id) DO NOTHING;
 
 -- Conectar no banco resourcedb

@@ -18,9 +18,6 @@ spring:
   application:
     name: resource-server
 
-  # ========================================
-  # 🗃️ DATABASE - H2 para desenvolvimento local
-  # ========================================
   datasource:
     url: jdbc:h2:file:./data/resourcedb;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
     driver-class-name: org.h2.Driver
@@ -49,9 +46,6 @@ spring:
       mode: always
       data-locations: classpath:data.sql
 
-  # ========================================
-  # 🔒 OAUTH2 RESOURCE SERVER
-  # ========================================
   security:
     oauth2:
       resourceserver:
@@ -59,31 +53,21 @@ spring:
           issuer-uri: https://localhost:8080
           jwk-set-uri: https://localhost:8080/.well-known/jwks.json
 
-# ========================================
-# 🏦 CONFIGURAÇÕES OPEN BANKING
-# ========================================
 open-banking:
   resource-server:
     base-url: https://localhost:8082
 
-  # Configurações de consent validation
   consent:
     validation:
       enabled: true
       auth-server-url: https://localhost:8080
 
-# ========================================
-# 🔒 CONFIGURAÇÃO mTLS
-# ========================================
 open-finance:
   mtls:
     enabled: true
     client-certificate-path: classpath:certificates/resource-server-keystore.p12
     client-certificate-password: changeit
 
-# ========================================
-# 📋 LOGGING
-# ========================================
 logging:
   level:
     root: INFO
@@ -93,22 +77,17 @@ logging:
     javax.net.ssl: DEBUG
 
 ---
-# ========================================
-# 🐘 POSTGRESQL - DOCKER PROFILE
-# ========================================
 spring:
   config:
     activate:
       on-profile: docker
 
-  # ✅ PostgreSQL para containers
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/resourcedb}
     username: ${DATABASE_USERNAME:tcc_user}
     password: ${DATABASE_PASSWORD:tcc_password}
     driver-class-name: org.postgresql.Driver
 
-  # ✅ Configurações JPA para PostgreSQL
   jpa:
     hibernate:
       ddl-auto: validate
@@ -119,7 +98,6 @@ spring:
         format_sql: true
     defer-datasource-initialization: false
 
-  # ✅ Desabilitar H2 console
   h2:
     console:
       enabled: false
@@ -128,7 +106,6 @@ spring:
     init:
       mode: never
 
-  # ✅ OAuth2 URLs internas do Docker
   security:
     oauth2:
       resourceserver:
@@ -136,7 +113,6 @@ spring:
           issuer-uri: http://auth-server:8080
           jwk-set-uri: http://auth-server:8080/.well-known/jwks.json
 
-# ✅ URLs internas do Docker
 open-banking:
   resource-server:
     base-url: http://resource-server:8082
@@ -145,15 +121,11 @@ open-banking:
     validation:
       auth-server-url: http://auth-server:8080
 
-# ✅ Simplificar SSL para Docker
 server:
   ssl:
     enabled: false
 
 ---
-# ========================================
-# 🧪 PROFILE DE TESTES
-# ========================================
 spring:
   config:
     activate:
