@@ -1,8 +1,6 @@
- 
 version: '3.8'
 
 services:
-  
   postgres:
     image: postgres:15-alpine
     container_name: tcc1-postgres
@@ -10,7 +8,6 @@ services:
       POSTGRES_DB: tcc_openbanking
       POSTGRES_USER: tcc_user
       POSTGRES_PASSWORD: tcc_password
-      POSTGRES_MULTIPLE_DATABASES: authdb,resourcedb
     ports:
       - "5432:5432"
     volumes:
@@ -21,12 +18,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     networks:
       - tcc-network
 
- 
   auth-server:
-    build: ./auth-server
+    build: 
+      context: ./auth-server
+      dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: tcc1-auth-server:latest
     container_name: tcc1-auth-server
     ports:
       - "8080:8080"
@@ -35,22 +37,30 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/authdb
       DATABASE_USERNAME: tcc_user
       DATABASE_PASSWORD: tcc_password
+      JAVA_OPTS: "-Xmx512m -Xms256m"
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - auth_logs:/app/logs
+      - auth_data:/app/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
     networks:
       - tcc-network
 
- 
   resource-server:
-    build: ./resource-server
+    build: 
+      context: ./resource-server
+      dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: tcc1-resource-server:latest
     container_name: tcc1-resource-server
     ports:
       - "8082:8082"
@@ -59,6 +69,7 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/resourcedb
       DATABASE_USERNAME: tcc_user
       DATABASE_PASSWORD: tcc_password
+      JAVA_OPTS: "-Xmx512m -Xms256m"
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,22 +77,31 @@ services:
         condition: service_healthy
     volumes:
       - resource_logs:/app/logs
+      - resource_data:/app/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
     networks:
       - tcc-network
 
  
   auth-client:
-    build: ./auth-client
+    build: 
+      context: ./auth-client
+      dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: tcc1-auth-client:latest
     container_name: tcc1-auth-client
     ports:
       - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      JAVA_OPTS: "-Xmx256m -Xms128m"
     depends_on:
       auth-server:
         condition: service_healthy
@@ -89,10 +109,10 @@ services:
         condition: service_healthy
     volumes:
       - client_logs:/app/logs
+    restart: unless-stopped
     networks:
       - tcc-network
 
- 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: tcc1-pgadmin
@@ -108,20 +128,15 @@ services:
     networks:
       - tcc-network
 
- 
 volumes:
   postgres_data:
-    driver: local
   auth_logs:
-    driver: local
   resource_logs:
-    driver: local
   client_logs:
-    driver: local
+  auth_data:
+  resource_data:
   pgadmin_data:
-    driver: local
 
- 
 networks:
   tcc-network:
     driver: bridge
