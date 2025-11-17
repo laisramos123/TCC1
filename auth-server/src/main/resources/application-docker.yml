@@ -35,7 +35,9 @@ server:
   port: 8080
 
 security:
-  require-ssl: false
+  require-ssl: fals
+  ssl:
+    enabled: false
   cors:
     allowed-origins:
       - "http://auth-client:8081"
@@ -55,9 +57,10 @@ management:
       exposure:
         include: health,info,metrics,prometheus
   metrics:
-    export:
-      prometheus:
+    endpoint:
+      health:
+        show-details: always
+  prometheus:
+    metrics:
+      export:
         enabled: true
-  endpoint:
-    health:
-      show-details: always

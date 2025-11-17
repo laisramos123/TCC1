@@ -2,10 +2,10 @@ server:
   port: 8080
   ssl:
     enabled: true
-    key-store: classpath:certificates/tpp-client-keystore.p12
+    key-store: classpath:certificates/auth-server-keystore.p12
     key-store-password: changeit
     key-store-type: PKCS12
-    key-alias: tpp-client
+    key-alias: auth-server
 
     trust-store: classpath:certificates/truststore.p12
     trust-store-password: changeit

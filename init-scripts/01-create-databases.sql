@@ -1,5 +1,4 @@
--- init-scripts/01-create-databases.sql
--- Criar bancos separados para cada serviço
+ 
 
 CREATE DATABASE authdb
     WITH OWNER = tcc_user
@@ -11,10 +10,10 @@ CREATE DATABASE resourcedb
     ENCODING = 'UTF8'
     CONNECTION LIMIT = -1;
 
--- Conectar no banco authdb
+ 
 \c authdb;
 
--- Usuários de exemplo para AUTH-SERVER
+ 
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
@@ -25,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Clientes OAuth2
+ 
 CREATE TABLE IF NOT EXISTS oauth2_registered_client (
     id VARCHAR(255) PRIMARY KEY,
     client_id VARCHAR(100) UNIQUE NOT NULL,
@@ -37,7 +36,7 @@ CREATE TABLE IF NOT EXISTS oauth2_registered_client (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Consentimentos
+ 
 CREATE TABLE IF NOT EXISTS consents (
     consent_id VARCHAR(255) PRIMARY KEY,
     client_id VARCHAR(100) NOT NULL,
@@ -57,7 +56,7 @@ CREATE TABLE IF NOT EXISTS consents (
     signature_timestamp TIMESTAMP
 );
 
--- Permissões de consentimento
+ 
 CREATE TABLE IF NOT EXISTS consent_permissions (
     consent_id VARCHAR(255) NOT NULL,
     permission VARCHAR(100) NOT NULL,
@@ -65,10 +64,10 @@ CREATE TABLE IF NOT EXISTS consent_permissions (
     FOREIGN KEY (consent_id) REFERENCES consents(consent_id) ON DELETE CASCADE
 );
 
--- Conectar no banco resourcedb
+ 
 \c resourcedb;
 
--- Contas bancárias para RESOURCE-SERVER
+ 
 CREATE TABLE IF NOT EXISTS accounts (
     id VARCHAR(255) PRIMARY KEY,
     account_number VARCHAR(20) UNIQUE NOT NULL,
@@ -82,7 +81,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Transações
+ 
 CREATE TABLE IF NOT EXISTS transactions (
     id VARCHAR(255) PRIMARY KEY,
     account_id VARCHAR(255) NOT NULL,
@@ -96,7 +95,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     FOREIGN KEY (account_id) REFERENCES accounts(id)
 );
 
--- Cartões de crédito
+ 
 CREATE TABLE IF NOT EXISTS credit_cards (
     id VARCHAR(255) PRIMARY KEY,
     card_number VARCHAR(20) NOT NULL,

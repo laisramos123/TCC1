@@ -12,9 +12,12 @@ import jakarta.annotation.PostConstruct;
 @SpringBootApplication
 public class AuthServerApplication {
 
-    public static void main(String[] args) {
+    static {
         Security.addProvider(new BouncyCastleProvider());
         Security.addProvider(new BouncyCastlePQCProvider());
+    }
+
+    public static void main(String[] args) {
 
         SpringApplication.run(AuthServerApplication.class, args);
     }
@@ -27,5 +30,6 @@ public class AuthServerApplication {
         if (Security.getProvider("BCPQC") == null) {
             throw new RuntimeException("BouncyCastle PQC provider não carregado!");
         }
+        System.out.println("✅ Providers  carregados com sucesso!");
     }
 }
