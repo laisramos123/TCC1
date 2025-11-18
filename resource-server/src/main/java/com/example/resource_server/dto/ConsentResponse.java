@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * DTO para resposta de consentimento (usado para validação)
- */
 @Data
 @Builder
 @NoArgsConstructor

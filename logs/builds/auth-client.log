@@ -1,0 +1,42 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.example:auth-client >-----------------------
+[INFO] Building auth-client 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ auth-client ---
+[INFO] Deleting /mnt/c/Users/laisr/IdeaProjects/TCC1/auth-client/target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ auth-client ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 4 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ auth-client ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 17 source files with javac [debug parameters release 21] to target/classes
+[INFO] /mnt/c/Users/laisr/IdeaProjects/TCC1/auth-client/src/main/java/com/example/auth_client/config/MtlsConfig.java: Some input files use or override a deprecated API.
+[INFO] /mnt/c/Users/laisr/IdeaProjects/TCC1/auth-client/src/main/java/com/example/auth_client/config/MtlsConfig.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ auth-client ---
+[INFO] skip non existing resourceDirectory /mnt/c/Users/laisr/IdeaProjects/TCC1/auth-client/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ auth-client ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ auth-client ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ auth-client ---
+[INFO] Building jar: /mnt/c/Users/laisr/IdeaProjects/TCC1/auth-client/target/auth-client-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.4.5:repackage (repackage) @ auth-client ---
+[INFO] Replacing main artifact /mnt/c/Users/laisr/IdeaProjects/TCC1/auth-client/target/auth-client-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /mnt/c/Users/laisr/IdeaProjects/TCC1/auth-client/target/auth-client-0.0.1-SNAPSHOT.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  27.147 s
+[INFO] Finished at: 2025-11-17T22:44:20-03:00
+[INFO] ------------------------------------------------------------------------

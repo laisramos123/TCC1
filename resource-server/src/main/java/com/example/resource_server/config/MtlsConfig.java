@@ -1,6 +1,5 @@
 package com.example.resource_server.config;
 
-import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -21,9 +20,6 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
-/**
- * Configuração mTLS para Resource Server usando HttpClient 5
- */
 @Configuration
 public class MtlsConfig {
 
@@ -39,25 +35,19 @@ public class MtlsConfig {
     @Value("${server.ssl.trust-store-password}")
     private String trustStorePassword;
 
-    /**
-     * RestTemplate configurado com mTLS para chamar Authorization Server
-     */
     @Bean
     public RestTemplate mtlsRestTemplate() throws Exception {
 
-        // Carrega KeyStore (certificado do cliente)
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         try (FileInputStream kis = new FileInputStream(resolveClasspath(keyStorePath))) {
             keyStore.load(kis, keyStorePassword.toCharArray());
         }
 
-        // Carrega TrustStore (certificados confiáveis)
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
         try (FileInputStream tis = new FileInputStream(resolveClasspath(trustStorePath))) {
             trustStore.load(tis, trustStorePassword.toCharArray());
         }
 
-        // Configura SSL Context
         SSLContext sslContext = SSLContextBuilder.create()
                 .loadKeyMaterial(keyStore, keyStorePassword.toCharArray())
                 .loadTrustMaterial(trustStore, new TrustStrategy() {
@@ -68,29 +58,22 @@ public class MtlsConfig {
                 })
                 .build();
 
-        // Configura Socket Factory
         SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
 
-        // Configura Connection Manager
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(socketFactory)
                 .build();
 
-        // Cria HttpClient 5
         CloseableHttpClient httpClient = HttpClients.custom()
                 .setConnectionManager(connectionManager)
                 .build();
 
-        // Cria RestTemplate
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
         factory.setHttpClient(httpClient);
 
         return new RestTemplate(factory);
     }
 
-    /**
-     * Extrator de principal do certificado X.509
-     */
     @Bean
     public X509PrincipalExtractor principalExtractor() {
         SubjectDnX509PrincipalExtractor extractor = new SubjectDnX509PrincipalExtractor();
@@ -98,9 +81,6 @@ public class MtlsConfig {
         return extractor;
     }
 
-    /**
-     * Resolve classpath para caminho absoluto
-     */
     private String resolveClasspath(String path) {
         if (path.startsWith("classpath:")) {
             return "src/main/resources/" + path.substring(10);

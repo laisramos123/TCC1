@@ -13,64 +13,61 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * FASE 3 - PASSO 4: Lógica de negócio dos recursos
- */
 @Service
 public class AccountService {
 
-    @Autowired
-    private AccountRepository accountRepository;
+        @Autowired
+        private AccountRepository accountRepository;
 
-    public AccountResponse getAccounts(String cpf) {
+        public AccountResponse getAccounts(String cpf) {
 
-        List<Account> accounts = accountRepository.findByUserId(cpf);
+                List<Account> accounts = accountRepository.findByUserId(cpf);
 
-        List<AccountResponse.AccountData> accountDataList = accounts.stream()
-                .map(this::toAccountData)
-                .collect(Collectors.toList());
+                List<AccountResponse.AccountData> accountDataList = accounts.stream()
+                                .map(this::toAccountData)
+                                .collect(Collectors.toList());
 
-        return AccountResponse.builder()
-                .data(accountDataList)
-                .links(AccountResponse.Links.builder()
-                        .self("/open-banking/accounts/v2/accounts")
-                        .build())
-                .meta(AccountResponse.Meta.builder()
-                        .totalRecords(accountDataList.size())
-                        .totalPages(1)
-                        .requestDateTime(LocalDateTime.now())
-                        .build())
-                .build();
-    }
+                return AccountResponse.builder()
+                                .data(accountDataList)
+                                .links(AccountResponse.Links.builder()
+                                                .self("/open-banking/accounts/v2/accounts")
+                                                .build())
+                                .meta(AccountResponse.Meta.builder()
+                                                .totalRecords(accountDataList.size())
+                                                .totalPages(1)
+                                                .requestDateTime(LocalDateTime.now())
+                                                .build())
+                                .build();
+        }
 
-    public AccountResponse.AccountData getAccountById(String accountId, String cpf) {
+        public AccountResponse.AccountData getAccountById(String accountId, String cpf) {
 
-        Account account = accountRepository.findByAccountIdAndUserId(accountId, cpf)
-                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
+                Account account = accountRepository.findByAccountIdAndUserId(accountId, cpf)
+                                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
 
-        return toAccountData(account);
-    }
+                return toAccountData(account);
+        }
 
-    public Map<String, Object> getAccountBalance(String accountId, String cpf) {
+        public Map<String, Object> getAccountBalance(String accountId, String cpf) {
 
-        Account account = accountRepository.findByAccountIdAndUserId(accountId, cpf)
-                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
+                Account account = accountRepository.findByAccountIdAndUserId(accountId, cpf)
+                                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
 
-        return Map.of(
-                "availableAmount", account.getBalance(),
-                "blockedAmount", BigDecimal.ZERO,
-                "automaticallyInvestedAmount", BigDecimal.ZERO,
-                "currency", account.getCurrency());
-    }
+                return Map.of(
+                                "availableAmount", account.getBalance(),
+                                "blockedAmount", BigDecimal.ZERO,
+                                "automaticallyInvestedAmount", BigDecimal.ZERO,
+                                "currency", account.getCurrency());
+        }
 
-    private AccountResponse.AccountData toAccountData(Account account) {
-        return AccountResponse.AccountData.builder()
-                .accountId(account.getAccountId())
-                .accountNumber(account.getAccountNumber())
-                .accountType(account.getAccountType())
-                .balance(account.getBalance())
-                .currency(account.getCurrency())
-                .status(account.getStatus())
-                .build();
-    }
+        private AccountResponse.AccountData toAccountData(Account account) {
+                return AccountResponse.AccountData.builder()
+                                .accountId(account.getAccountId())
+                                .accountNumber(account.getAccountNumber())
+                                .accountType(account.getAccountType())
+                                .balance(account.getBalance())
+                                .currency(account.getCurrency())
+                                .status(account.getStatus())
+                                .build();
+        }
 }

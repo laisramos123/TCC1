@@ -29,7 +29,7 @@ public class DilithiumSignatureAlgorithm implements SignatureAlgorithm {
         long duration = System.nanoTime() - startTime;
         metrics.setKeyGenerationTime(duration / 1_000_000);
 
-        log.info("✅ Dilithium3 keypair generated in {} ms", metrics.getKeyGenerationTime());
+        log.info("Dilithium3 keypair generated in {} ms", metrics.getKeyGenerationTime());
     }
 
     @Override

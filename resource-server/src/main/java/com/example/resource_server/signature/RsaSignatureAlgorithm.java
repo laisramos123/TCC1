@@ -28,7 +28,7 @@ public class RsaSignatureAlgorithm implements SignatureAlgorithm {
         long duration = System.nanoTime() - startTime;
         metrics.setKeyGenerationTime(duration / 1_000_000);
 
-        log.info("✅ RSA-2048 keypair generated in {} ms", metrics.getKeyGenerationTime());
+        log.info(" RSA-2048 keypair generated in {} ms", metrics.getKeyGenerationTime());
     }
 
     @Override

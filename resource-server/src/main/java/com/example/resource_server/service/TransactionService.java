@@ -20,9 +20,6 @@ public class TransactionService {
         @Autowired
         private AccountService accountService;
 
-        /**
-         * Busca transações de uma conta com filtros
-         */
         public List<Transaction> findTransactions(
                         String accountId,
                         String cpf,
@@ -31,10 +28,8 @@ public class TransactionService {
                         int page,
                         int pageSize) {
 
-                // Valida que a conta pertence ao usuário
                 accountService.getAccountById(accountId, cpf);
 
-                // Define datas padrão se não fornecidas
                 LocalDateTime from = fromDate != null
                                 ? fromDate.atStartOfDay()
                                 : LocalDateTime.now().minusMonths(1);
@@ -43,7 +38,6 @@ public class TransactionService {
                                 ? toDate.atTime(23, 59, 59)
                                 : LocalDateTime.now();
 
-                // Busca transações com paginação
                 return transactionRepository.findByAccountIdAndTransactionDateTimeBetween(
                                 accountId,
                                 from,

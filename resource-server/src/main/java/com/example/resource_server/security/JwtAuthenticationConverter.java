@@ -11,9 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Conversor que extrai authorities dos scopes do JWT
- */
 public class JwtAuthenticationConverter
         implements Converter<Jwt, AbstractAuthenticationToken> {
 

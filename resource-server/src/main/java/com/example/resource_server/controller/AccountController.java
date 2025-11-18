@@ -11,11 +11,7 @@ import com.example.resource_server.dto.AccountResponse;
 import com.example.resource_server.service.AccountService;
 
 import java.util.Map;
-import java.util.UUID;
 
-/**
- * FASE 3 - PASSO 3: APIs de Recursos Protegidas
- */
 @RestController
 @RequestMapping("/open-banking/accounts/v2")
 public class AccountController {
@@ -23,9 +19,6 @@ public class AccountController {
         @Autowired
         private AccountService accountService;
 
-        /**
-         * Lista contas do usuário
-         */
         @GetMapping("/accounts")
         @PreAuthorize("hasAuthority('SCOPE_accounts')")
         public ResponseEntity<AccountResponse> getAccounts(
@@ -42,9 +35,6 @@ public class AccountController {
                                 .body(response);
         }
 
-        /**
-         * Obtém detalhes de uma conta
-         */
         @GetMapping("/accounts/{accountId}")
         @PreAuthorize("hasAuthority('SCOPE_accounts')")
         public ResponseEntity<AccountResponse.AccountData> getAccountById(
@@ -62,9 +52,6 @@ public class AccountController {
                                 .body(account);
         }
 
-        /**
-         * Obtém saldo de uma conta
-         */
         @GetMapping("/accounts/{accountId}/balances")
         @PreAuthorize("hasAuthority('SCOPE_accounts')")
         public ResponseEntity<Map<String, Object>> getAccountBalance(

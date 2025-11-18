@@ -14,10 +14,6 @@ import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
-/**
- * Validador de Certificate-Bound Access Tokens (RFC 8705)
- * Garante que o token JWT está vinculado ao certificado do cliente
- */
 @Component
 public class CertificateBoundAccessTokenValidator implements OAuth2TokenValidator<Jwt> {
 
@@ -25,7 +21,7 @@ public class CertificateBoundAccessTokenValidator implements OAuth2TokenValidato
     public OAuth2TokenValidatorResult validate(Jwt jwt) {
 
         try {
-            // Obtém certificado da requisição atual
+
             X509Certificate clientCert = getClientCertificate();
 
             if (clientCert == null) {
@@ -33,7 +29,6 @@ public class CertificateBoundAccessTokenValidator implements OAuth2TokenValidato
                         new OAuth2Error("invalid_token", "Client certificate not found", null));
             }
 
-            // Extrai thumbprint do JWT (cnf claim)
             String jwtThumbprint = extractThumbprintFromJwt(jwt);
 
             if (jwtThumbprint == null) {
@@ -41,10 +36,8 @@ public class CertificateBoundAccessTokenValidator implements OAuth2TokenValidato
                         new OAuth2Error("invalid_token", "Certificate thumbprint not found in token", null));
             }
 
-            // Calcula thumbprint do certificado atual
             String certThumbprint = calculateThumbprint(clientCert);
 
-            // Compara thumbprints
             if (!jwtThumbprint.equals(certThumbprint)) {
                 return OAuth2TokenValidatorResult.failure(
                         new OAuth2Error("invalid_token", "Certificate thumbprint mismatch", null));
@@ -58,9 +51,6 @@ public class CertificateBoundAccessTokenValidator implements OAuth2TokenValidato
         }
     }
 
-    /**
-     * Obtém certificado X.509 da requisição HTTP
-     */
     private X509Certificate getClientCertificate() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
@@ -76,10 +66,6 @@ public class CertificateBoundAccessTokenValidator implements OAuth2TokenValidato
         return null;
     }
 
-    /**
-     * Extrai thumbprint do JWT (claim "cnf")
-     * Conforme RFC 8705
-     */
     private String extractThumbprintFromJwt(Jwt jwt) {
         Object cnf = jwt.getClaim("cnf");
         if (cnf instanceof java.util.Map) {
@@ -89,10 +75,6 @@ public class CertificateBoundAccessTokenValidator implements OAuth2TokenValidato
         return null;
     }
 
-    /**
-     * Calcula SHA-256 thumbprint do certificado
-     * Conforme RFC 8705
-     */
     private String calculateThumbprint(X509Certificate cert) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] der = cert.getEncoded();

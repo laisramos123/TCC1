@@ -12,9 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * FASE 3 - PASSO 1: Filtro que valida consentimento em TODA request
- */
 public class ConsentValidationFilter extends OncePerRequestFilter {
 
     private final ConsentValidationService consentValidationService;
@@ -30,18 +27,17 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
             FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            // Extrai JWT do contexto de segurança
+
             JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext()
                     .getAuthentication();
 
             if (authentication != null) {
                 Jwt jwt = authentication.getToken();
 
-                // Extrai consent ID do JWT
                 String consentId = jwt.getClaimAsString("consent_id");
 
                 if (consentId == null) {
-                    // Tenta extrair do scope
+
                     String scope = jwt.getClaimAsString("scope");
                     consentId = extractConsentIdFromScope(scope);
                 }
@@ -50,10 +46,8 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
                     throw new RuntimeException("Consent ID não encontrado no token");
                 }
 
-                // Determina permissão necessária baseado no endpoint
                 String requiredPermission = getRequiredPermission(request.getRequestURI());
 
-                // VALIDA CONSENTIMENTO via Consent API
                 consentValidationService.validateConsentForResourceAccess(
                         consentId,
                         requiredPermission);

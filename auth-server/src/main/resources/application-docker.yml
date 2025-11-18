@@ -1,66 +1,155 @@
-# a
 spring:
   application:
     name: auth-server
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/openFinance_auth
-    username: ${DB_USERNAME:admin}
-    password: ${DB_PASSWORD:quantum_secure_2024}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/authdb?reWriteBatchedInserts=true&stringtype=unspecified}
+    username: ${SPRING_DATASOURCE_USERNAME:tcc_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:tcc_password}
     driver-class-name: org.postgresql.Driver
+
+    hikari:
+      pool-name: AuthServerHikariPool
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:20}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:10}
+      connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT:600000}
+      max-lifetime: ${SPRING_DATASOURCE_HIKARI_MAX_LIFETIME:1800000}
+      auto-commit: true
+      connection-test-query: SELECT 1
+      leak-detection-threshold: 60000
 
   jpa:
     hibernate:
       ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: true
+        query:
+          in_clause_parameter_padding: true
+        generate_statistics: false
 
-  quantum:
-    dilithium:
-      security-level: ${DILITHIUM_SECURITY_LEVEL:3}
-      key-cache-ttl: 3600
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
 
-  oauth2:
-    authorization-server:
-      issuer: ${JWT_ISSUER:http://localhost:8080}
-      client:
-        oauth-client:
-          client-id: oauth-client
-          client-secret: ${CLIENT_SECRET:quantum_secret_2024}
-          redirect-uris:
-            - ${CLIENT_REDIRECT_URI:http://auth-client:8081/login/oauth2/code/tpp-client}
-          scopes: openid,accounts,transactions,credit-cards
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${SPRING_CACHE_REDIS_TIME_TO_LIVE:3600000}
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: auth-server
+    cache-names:
+      - consents
+      - tokens
+      - dilithiumKeys
+      - consentValidations
+      - signatures
+
+  security:
+    oauth2:
+      authorization-server:
+        issuer: ${JWT_ISSUER:http://auth-server:8080}
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
-security:
-  require-ssl: fals
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_THREADS_MAX:200}
+      min-spare: ${SERVER_TOMCAT_THREADS_MIN_SPARE:10}
+    accept-count: 100
+    max-connections: 10000
+    connection-timeout: 60000
+
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 2048
+
   ssl:
     enabled: false
-  cors:
-    allowed-origins:
-      - "http://auth-client:8081"
-      - "http://localhost:8081"
-      - "http://localhost:4200" # Para Angular futuro
 
-logging:
-  level:
-    com.example.auth_server.dilithium: DEBUG
-    org.springframework.security.oauth2: INFO
-  pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
+dilithium:
+  security-level: ${DILITHIUM_SECURITY_LEVEL:3}
+  key:
+    cache:
+      enabled: ${DILITHIUM_KEY_CACHE_ENABLED:true}
+    pool:
+      size: ${DILITHIUM_KEY_POOL_SIZE:10}
+      min: 5
+  precompute:
+    keys: ${DILITHIUM_PRECOMPUTE_KEYS:true}
+
+jwt:
+  signature:
+    algorithm: ${JWT_SIGNATURE_ALGORITHM:DILITHIUM}
+    issuer: ${JWT_ISSUER:http://auth-server:8080}
+
+cors:
+  allowed:
+    origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8081,http://auth-client:8081}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,cache
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
   metrics:
-    endpoint:
-      health:
-        show-details: always
+    tags:
+      application: ${spring.application.name}
+      environment: docker
   prometheus:
     metrics:
       export:
         enabled: true
+
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    com.example.auth_server: ${LOGGING_LEVEL_COM_EXAMPLE:DEBUG}
+    org.springframework.security: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY:DEBUG}
+    org.springframework.security.oauth2: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql: WARN
+    com.zaxxer.hikari: INFO
+    org.springframework.cache: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
+  file:
+    name: /app/logs/auth-server.log
+    max-size: 100MB
+    max-history: 30

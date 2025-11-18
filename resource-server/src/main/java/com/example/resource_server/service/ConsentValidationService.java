@@ -11,10 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * FASE 3 - PASSO 2: Validação de consentimento no Resource Server
- * Chama Consent API do Authorization Server
- */
 @Service
 public class ConsentValidationService {
 
@@ -27,9 +23,6 @@ public class ConsentValidationService {
         this.restTemplate = restTemplate;
     }
 
-    /**
-     * Valida consentimento para acesso aos recursos
-     */
     public void validateConsentForResourceAccess(String consentId, String requiredPermission) {
 
         if (consentId == null) {
@@ -56,19 +49,16 @@ public class ConsentValidationService {
                 throw new RuntimeException("Consentimento não encontrado");
             }
 
-            // Valida status
             if (!"AUTHORISED".equals(consent.getData().getStatus())) {
                 throw new RuntimeException(
                         "Consentimento não está autorizado. Status: " + consent.getData().getStatus());
             }
 
-            // Valida expiração
             LocalDateTime expiration = consent.getData().getExpirationDateTime();
             if (expiration.isBefore(LocalDateTime.now())) {
                 throw new RuntimeException("Consentimento expirado");
             }
 
-            // Valida permissão específica
             List<String> permissions = consent.getData().getPermissions();
             if (requiredPermission != null && !permissions.contains(requiredPermission)) {
                 throw new RuntimeException(

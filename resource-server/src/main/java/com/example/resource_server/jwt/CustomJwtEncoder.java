@@ -57,7 +57,7 @@ public class CustomJwtEncoder implements JwtEncoder {
 
             String tokenValue = signingInput + "." + signatureBase64;
 
-            log.info("✅ JWT signed with {} - Size: {} bytes",
+            log.info("  JWT signed with {} - Size: {} bytes",
                     signatureAlgorithm.getAlgorithmName(),
                     tokenValue.length());
 
@@ -77,7 +77,7 @@ public class CustomJwtEncoder implements JwtEncoder {
                     claims);
 
         } catch (Exception e) {
-            log.error("❌ Error encoding JWT with {}: {}",
+            log.error("  Error encoding JWT with {}: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     e.getMessage());
             throw new JwtEncodingException("Failed to encode JWT", e);

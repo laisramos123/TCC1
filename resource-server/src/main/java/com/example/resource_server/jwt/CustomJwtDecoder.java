@@ -45,7 +45,6 @@ public class CustomJwtDecoder implements JwtDecoder {
             @SuppressWarnings("unchecked")
             Map<String, Object> claims = objectMapper.readValue(payloadJson, Map.class);
 
-            // 3. Verify signature
             String signingInput = headerBase64 + "." + payloadBase64;
             byte[] signatureBytes = base64UrlDecode(signatureBase64);
 
@@ -58,11 +57,10 @@ public class CustomJwtDecoder implements JwtDecoder {
                 throw new JwtException("Invalid JWT signature - " + signatureAlgorithm.getAlgorithmName());
             }
 
-            log.info("✅ JWT verified with {} - Algorithm: {}",
+            log.info("  JWT verified with {} - Algorithm: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     header.get("alg"));
 
-            // 4. Extract timestamps
             Instant issuedAt = claims.containsKey("iat")
                     ? Instant.ofEpochSecond(((Number) claims.get("iat")).longValue())
                     : Instant.now();
@@ -81,7 +79,7 @@ public class CustomJwtDecoder implements JwtDecoder {
         } catch (JwtException e) {
             throw e;
         } catch (Exception e) {
-            log.error("❌ Error decoding JWT with {}: {}",
+            log.error("  Error decoding JWT with {}: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     e.getMessage());
             throw new JwtException("Failed to decode JWT", e);

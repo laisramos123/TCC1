@@ -23,11 +23,10 @@ public class CreditCard {
     private String cardId;
 
     @Column(nullable = false)
-    private String userId; // CPF do titular
+    private String userId;
 
     @Column(nullable = false)
-    private String cardNumber; // Mascarado: **** **** **** 1234
-
+    private String cardNumber;
     @Column(nullable = false)
     private String cardHolderName;
 
@@ -35,10 +34,10 @@ public class CreditCard {
     private LocalDate expiryDate;
 
     @Column(nullable = false)
-    private String cardType; // CREDITO, DEBITO
+    private String cardType;
 
     @Column(nullable = false)
-    private String brand; // VISA, MASTERCARD, ELO
+    private String brand;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal creditLimit;

@@ -22,13 +22,13 @@ public class Account {
     private String accountId;
 
     @Column(nullable = false)
-    private String userId; // CPF do titular
+    private String userId;
 
     @Column(nullable = false)
     private String accountNumber;
 
     @Column(nullable = false)
-    private String accountType; // CONTA_CORRENTE, CONTA_POUPANCA
+    private String accountType;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
