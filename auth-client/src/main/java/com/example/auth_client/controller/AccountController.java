@@ -25,17 +25,13 @@ public class AccountController {
     @Autowired
     private TokenService tokenService;
 
-    /**
-     * PASSO 6: Exibe contas do usuário
-     */
     @GetMapping
     public String listAccounts(Model model, HttpSession session) {
 
         try {
-            // Recupera access token (renovando se necessário)
+
             String accessToken = getValidAccessToken(session);
 
-            // PASSO 7: Busca contas usando o token
             OpenBankingAccountResponse accounts = accountService.getAccounts(accessToken);
 
             model.addAttribute("accounts", accounts.getData());
@@ -49,9 +45,6 @@ public class AccountController {
         }
     }
 
-    /**
-     * Exibe detalhes de uma conta
-     */
     @GetMapping("/{accountId}")
     public String accountDetails(
             @PathVariable String accountId,
@@ -61,7 +54,6 @@ public class AccountController {
         try {
             String accessToken = getValidAccessToken(session);
 
-            // Busca saldo
             Object balance = accountService.getAccountBalance(accountId, accessToken);
 
             model.addAttribute("accountId", accountId);
@@ -75,18 +67,13 @@ public class AccountController {
         }
     }
 
-    /**
-     * Obtém access token válido (renova se expirado)
-     */
     private String getValidAccessToken(HttpSession session) {
 
         String accessToken = (String) session.getAttribute("access_token");
         Instant expiresAt = (Instant) session.getAttribute("token_expires_at");
 
-        // Verifica se token expirou
         if (expiresAt != null && Instant.now().isAfter(expiresAt)) {
 
-            // Renova token
             String refreshToken = (String) session.getAttribute("refresh_token");
 
             if (refreshToken == null) {
@@ -95,7 +82,6 @@ public class AccountController {
 
             TokenResponse newTokens = tokenService.refreshToken(refreshToken);
 
-            // Atualiza sessão
             accessToken = newTokens.getAccessToken();
             session.setAttribute("access_token", accessToken);
             session.setAttribute("refresh_token", newTokens.getRefreshToken());

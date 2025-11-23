@@ -4,6 +4,7 @@ import com.example.auth_server.model.Consent;
 import com.example.auth_server.enums.ConsentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -12,19 +13,21 @@ import java.util.Optional;
 
 @Repository
 public interface ConsentRepository extends JpaRepository<Consent, String> {
-    
+
     List<Consent> findByClientIdAndStatus(String clientId, ConsentStatus status);
-    
+
     List<Consent> findByClientId(String clientId);
-    
-    @Query("SELECT c FROM Consent c WHERE c.status = :status AND c.expirationDate > :now")
-    List<Consent> findActiveConsents(ConsentStatus status, LocalDateTime now);
-    
-    @Query("SELECT c FROM Consent c WHERE c.cpf = :cpf AND c.status = 'AUTHORIZED'")
-    List<Consent> findActiveConsentsByCpf(String cpf);
-    
+
+    List<Consent> findByStatus(ConsentStatus status);
+
+    @Query("SELECT c FROM Consent c WHERE c.status = :status AND c.expirationDateTime > :now")
+    List<Consent> findActiveConsents(@Param("status") ConsentStatus status, @Param("now") LocalDateTime now);
+
+    @Query("SELECT c FROM Consent c WHERE c.loggedUserDocument = :cpf AND c.status = :status")
+    List<Consent> findActiveConsentsByCpf(@Param("cpf") String cpf, @Param("status") ConsentStatus status);
+
     Optional<Consent> findByConsentIdAndClientId(String consentId, String clientId);
-    
+
     @Query("SELECT COUNT(c) FROM Consent c WHERE c.status = :status")
-    long countByStatus(ConsentStatus status);
+    long countByStatus(@Param("status") ConsentStatus status);
 }

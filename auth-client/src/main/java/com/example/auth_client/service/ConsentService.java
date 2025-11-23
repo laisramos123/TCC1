@@ -24,9 +24,6 @@ public class ConsentService {
                 this.restTemplate = restTemplate;
         }
 
-        /**
-         * PASSO 1: Cria consentimento no banco (COM mTLS)
-         */
         public ConsentResponse createConsent(String cpf, List<String> permissions) {
 
                 String url = authorizationServer + "/open-banking/consents/v2/consents";
@@ -58,7 +55,6 @@ public class ConsentService {
 
                 HttpEntity<ConsentRequest> entity = new HttpEntity<>(request, headers);
 
-                // RestTemplate usa mTLS automaticamente
                 ResponseEntity<ConsentResponse> response = restTemplate.postForEntity(
                                 url,
                                 entity,
@@ -67,9 +63,6 @@ public class ConsentService {
                 return response.getBody();
         }
 
-        /**
-         * Consulta status do consentimento (COM mTLS)
-         */
         public ConsentResponse getConsent(String consentId) {
                 String url = authorizationServer + "/open-banking/consents/v2/consents/" + consentId;
 

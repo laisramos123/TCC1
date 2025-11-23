@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
-/**
- * Dados armazenados na sessão HTTP
- */
 @Data
 @Builder
 @NoArgsConstructor

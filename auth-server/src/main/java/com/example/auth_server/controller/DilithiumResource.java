@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import com.example.auth_server.dto.VerificationRequestDTO;
 public class DilithiumResource {
 
     @Autowired
+    @Qualifier("dilithiumService")
     private DilithiumSignature dilithiumSignature;
 
     @PostMapping("/public/assinar")

@@ -18,10 +18,6 @@ public class CallbackController {
     @Autowired
     private TokenService tokenService;
 
-    /**
-     * PASSO 4: Callback OAuth2
-     * Banco redireciona aqui após usuário autorizar
-     */
     @GetMapping("/callback")
     public RedirectView handleCallback(
             @RequestParam String code,
@@ -29,38 +25,32 @@ public class CallbackController {
             @RequestParam(required = false) String error,
             HttpSession session) {
 
-        // Verifica se houve erro
         if (error != null) {
             return new RedirectView("/error?message=" + error);
         }
 
         try {
-            // Recupera dados da sessão
+
             String storedState = (String) session.getAttribute("state");
             String codeVerifier = (String) session.getAttribute("code_verifier");
             String consentId = (String) session.getAttribute("consent_id");
 
-            // Valida state (proteção CSRF)
             if (!state.equals(storedState)) {
                 return new RedirectView("/error?message=Invalid state");
             }
 
-            // PASSO 5: Troca código por tokens
             TokenResponse tokenResponse = tokenService.exchangeCodeForToken(
                     code,
                     codeVerifier);
 
-            // Armazena tokens na sessão
             session.setAttribute("access_token", tokenResponse.getAccessToken());
             session.setAttribute("refresh_token", tokenResponse.getRefreshToken());
             session.setAttribute("token_expires_at",
                     Instant.now().plusSeconds(tokenResponse.getExpiresIn()));
 
-            // Limpa dados temporários
             session.removeAttribute("code_verifier");
             session.removeAttribute("state");
 
-            // Redireciona para página de contas
             return new RedirectView("/accounts");
 
         } catch (Exception e) {

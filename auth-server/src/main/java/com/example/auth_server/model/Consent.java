@@ -4,40 +4,69 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.auth_server.dto.ConsentRequest.Data.LoggedUser;
 import com.example.auth_server.enums.ConsentStatus;
 
 @Entity
 @Table(name = "consents")
 public class Consent {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "consent_id")
     private String consentId;
 
+    @Column(name = "client_id")
     private String clientId;
+
+    @Column(name = "user_id")
     private String userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private ConsentStatus status;
+
+    @Column(name = "creation_date_time")
     private LocalDateTime creationDateTime;
+
+    @Column(name = "status_update_date_time")
     private LocalDateTime statusUpdateDateTime;
+
+    @Column(name = "expiration_date_time")
     private LocalDateTime expirationDateTime;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "consent_permissions", joinColumns = @JoinColumn(name = "consent_id"))
+    @Column(name = "permission")
     private List<String> permissions;
 
+    @Column(name = "logged_user_document")
     private String loggedUserDocument;
+
+    @Column(name = "logged_user_rel")
     private String loggedUserRel;
+
+    @Column(name = "business_entity_document")
     private String businessEntityDocument;
+
+    @Column(name = "business_entity_rel")
     private String businessEntityRel;
 
+    @Column(name = "transaction_from_date_time")
     private LocalDateTime transactionFromDateTime;
+
+    @Column(name = "transaction_to_date_time")
     private LocalDateTime transactionToDateTime;
 
+    @Column(name = "revocation_reason_code")
     private String revocationReasonCode;
+
+    @Column(name = "revocation_reason_detail")
     private String revocationReasonDetail;
+
+    @Column(name = "revoked_by")
     private String revokedBy;
+
+    @Column(name = "revoked_at")
     private LocalDateTime revokedAt;
 
-    // Constructors
     public Consent() {
     }
 
@@ -45,7 +74,6 @@ public class Consent {
         return new Builder();
     }
 
-    // Builder class
     public static class Builder {
         private Consent consent = new Consent();
 
@@ -94,37 +122,11 @@ public class Consent {
             return this;
         }
 
-        public Builder loggedUserRel(String loggedUserRel) {
-            consent.loggedUserRel = loggedUserRel;
-            return this;
-        }
-
-        public Builder businessEntityDocument(String businessEntityDocument) {
-            consent.businessEntityDocument = businessEntityDocument;
-            return this;
-        }
-
-        public Builder businessEntityRel(String businessEntityRel) {
-            consent.businessEntityRel = businessEntityRel;
-            return this;
-        }
-
-        public Builder transactionFromDateTime(LocalDateTime transactionFromDateTime) {
-            consent.transactionFromDateTime = transactionFromDateTime;
-            return this;
-        }
-
-        public Builder transactionToDateTime(LocalDateTime transactionToDateTime) {
-            consent.transactionToDateTime = transactionToDateTime;
-            return this;
-        }
-
         public Consent build() {
             return consent;
         }
     }
 
-    // Getters and Setters
     public String getConsentId() {
         return consentId;
     }
@@ -193,7 +195,7 @@ public class Consent {
         return loggedUserDocument;
     }
 
-    public void setLoggedUserDocument(LoggedUser loggedUserDocument) {
+    public void setLoggedUserDocument(String loggedUserDocument) {
         this.loggedUserDocument = loggedUserDocument;
     }
 
@@ -267,15 +269,5 @@ public class Consent {
 
     public void setRevokedAt(LocalDateTime revokedAt) {
         this.revokedAt = revokedAt;
-    }
-
-    public void setCreatedAt(LocalDateTime now) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setCreatedAt'");
-    }
-
-    public void setLoggedUserDocument(LoggedUser loggedUser) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setLoggedUserDocument'");
     }
 }

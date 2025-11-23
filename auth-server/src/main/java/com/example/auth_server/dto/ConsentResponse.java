@@ -168,11 +168,6 @@ public class ConsentResponse {
         public void setRequestDateTime(LocalDateTime requestDateTime) {
             this.requestDateTime = requestDateTime;
         }
-
-        public static Object builder() {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'builder'");
-        }
     }
 
     public Data getData() {

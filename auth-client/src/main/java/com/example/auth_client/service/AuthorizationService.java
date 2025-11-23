@@ -26,9 +26,6 @@ public class AuthorizationService {
         this.pkceGenerator = pkceGenerator;
     }
 
-    /**
-     * PASSO 2: Constrói URL de autorização
-     */
     public String buildAuthorizationUrl(ConsentResponse consent,
             String codeVerifier,
             String state) {

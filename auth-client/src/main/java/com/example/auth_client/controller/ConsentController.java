@@ -27,11 +27,6 @@ public class ConsentController {
     @Autowired
     private PkceGenerator pkceGenerator;
 
-    /**
-     * FLUXO COMPLETO:
-     * 1. Cria consentimento
-     * 2. Redireciona para autorização OAuth2
-     */
     @PostMapping("/initiate")
     public RedirectView initiateConsent(
             @RequestParam String cpf,
@@ -40,25 +35,20 @@ public class ConsentController {
 
         try {
 
-            // PASSO 1: Criar consentimento no banco
             ConsentResponse consent = consentService.createConsent(cpf, permissions);
 
-            // Gera PKCE
             String codeVerifier = pkceGenerator.generateCodeVerifier();
             String state = UUID.randomUUID().toString();
 
-            // Armazena na sessão
             session.setAttribute("consent_id", consent.getData().getConsentId());
             session.setAttribute("code_verifier", codeVerifier);
             session.setAttribute("state", state);
 
-            // PASSO 2: Constrói URL de autorização
             String authUrl = authorizationService.buildAuthorizationUrl(
                     consent,
                     codeVerifier,
                     state);
 
-            // PASSO 3: Redireciona usuário para o banco autorizar
             return new RedirectView(authUrl);
 
         } catch (Exception e) {
@@ -66,9 +56,6 @@ public class ConsentController {
         }
     }
 
-    /**
-     * Consulta status de um consentimento
-     */
     @GetMapping("/{consentId}")
     @ResponseBody
     public ConsentResponse getConsentStatus(@PathVariable String consentId) {

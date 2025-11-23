@@ -46,122 +46,122 @@ import java.util.UUID;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    
+
     @Autowired(required = false)
     @Lazy
     private X509AuthenticationFilter x509AuthenticationFilter;
-    
+
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
-    
+
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-    
-    @Bean
-    @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        
-        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-            .oidc(Customizer.withDefaults());
-        
-        http
-            .exceptionHandling((exceptions) -> exceptions
-                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
-            )
-            .oauth2ResourceServer((resourceServer) -> resourceServer
-                .jwt(Customizer.withDefaults())
-            );
-        
-        return http.build();
-    }
-    
+
+    // @Bean
+    // @Order(1)
+    // public SecurityFilterChain
+    // authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+    // OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+
+    // http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+    // .oidc(Customizer.withDefaults());
+
+    // http
+    // .exceptionHandling((exceptions) -> exceptions
+    // .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+    // )
+    // .oauth2ResourceServer((resourceServer) -> resourceServer
+    // .jwt(Customizer.withDefaults())
+    // );
+
+    // return http.build();
+    // }
+
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, 
-                                                         @Lazy AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http,
+            @Lazy AuthenticationManager authenticationManager) throws Exception {
         if (x509AuthenticationFilter != null) {
             x509AuthenticationFilter.setAuthenticationManager(authenticationManager);
         }
-        
+
         http
-            .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers(
-                    "/actuator/health",
-                    "/login",
-                    "/error",
-                    "/css/**",
-                    "/js/**",
-                    "/images/**",
-                    "/webjars/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .permitAll()
-            )
-            .csrf(AbstractHttpConfigurer::disable);
-        
+                .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/login",
+                                "/error",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/webjars/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll())
+                .csrf(AbstractHttpConfigurer::disable);
+
         if (x509AuthenticationFilter != null) {
             http.addFilterBefore(x509AuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         }
-        
+
         return http.build();
     }
-    
-    @Bean
-    public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-            .clientId("client")
-            .clientSecret(passwordEncoder().encode("secret"))
-            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-            .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-            .redirectUri("http://localhost:8081/login/oauth2/code/auth-server")
-            .redirectUri("http://localhost:8081/authorized")
-            .scope(OidcScopes.OPENID)
-            .scope(OidcScopes.PROFILE)
-            .scope("read")
-            .scope("write")
-            .clientSettings(ClientSettings.builder()
-                .requireAuthorizationConsent(true)
-                .requireProofKey(true)
-                .build())
-            .tokenSettings(TokenSettings.builder()
-                .accessTokenTimeToLive(Duration.ofMinutes(15))
-                .refreshTokenTimeToLive(Duration.ofDays(1))
-                .build())
-            .build();
-        
-        return new InMemoryRegisteredClientRepository(registeredClient);
-    }
-    
+
+    // @Bean
+    // public RegisteredClientRepository registeredClientRepository() {
+    // RegisteredClient registeredClient =
+    // RegisteredClient.withId(UUID.randomUUID().toString())
+    // .clientId("client")
+    // .clientSecret(passwordEncoder().encode("secret"))
+    // .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+    // .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+    // .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+    // .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+    // .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+    // .redirectUri("http://localhost:8081/login/oauth2/code/auth-server")
+    // .redirectUri("http://localhost:8081/authorized")
+    // .scope(OidcScopes.OPENID)
+    // .scope(OidcScopes.PROFILE)
+    // .scope("read")
+    // .scope("write")
+    // .clientSettings(ClientSettings.builder()
+    // .requireAuthorizationConsent(true)
+    // .requireProofKey(true)
+    // .build())
+    // .tokenSettings(TokenSettings.builder()
+    // .accessTokenTimeToLive(Duration.ofMinutes(15))
+    // .refreshTokenTimeToLive(Duration.ofDays(1))
+    // .build())
+    // .build();
+
+    // return new InMemoryRegisteredClientRepository(registeredClient);
+    // }
+
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
         KeyPair keyPair = generateRsaKey();
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
-            .privateKey(privateKey)
-            .keyID(UUID.randomUUID().toString())
-            .build();
+                .privateKey(privateKey)
+                .keyID(UUID.randomUUID().toString())
+                .build();
         JWKSet jwkSet = new JWKSet(rsaKey);
         return new ImmutableJWKSet<>(jwkSet);
     }
-    
+
     private static KeyPair generateRsaKey() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -171,11 +171,11 @@ public class SecurityConfig {
             throw new IllegalStateException(ex);
         }
     }
-    
-    @Bean
-    public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder()
-            .issuer("http://localhost:8080")
-            .build();
-    }
+
+    // @Bean
+    // public AuthorizationServerSettings authorizationServerSettings() {
+    // return AuthorizationServerSettings.builder()
+    // .issuer("http://localhost:8080")
+    // .build();
+    // }
 }

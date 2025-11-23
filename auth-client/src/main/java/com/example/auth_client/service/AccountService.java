@@ -21,9 +21,6 @@ public class AccountService {
         this.restTemplate = restTemplate;
     }
 
-    /**
-     * PASSO 4: Busca contas usando access token (COM mTLS)
-     */
     public OpenBankingAccountResponse getAccounts(String accessToken) {
 
         String url = resourceServer + "/open-banking/accounts/v2/accounts";
@@ -34,7 +31,6 @@ public class AccountService {
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        // RestTemplate usa mTLS automaticamente
         ResponseEntity<OpenBankingAccountResponse> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -44,9 +40,6 @@ public class AccountService {
         return response.getBody();
     }
 
-    /**
-     * Busca saldo de uma conta (COM mTLS)
-     */
     public Object getAccountBalance(String accountId, String accessToken) {
 
         String url = resourceServer + "/open-banking/accounts/v2/accounts/"

@@ -26,10 +26,6 @@ public class TransactionController {
     @Autowired
     private ConsentValidationService consentValidationService;
 
-    /**
-     * Lista transações de uma conta
-     * GET /accounts/{accountId}/transactions
-     */
     @GetMapping("/accounts/{accountId}/transactions")
     @PreAuthorize("hasAuthority('SCOPE_accounts')")
     public ResponseEntity<Map<String, Object>> getTransactions(
@@ -45,7 +41,6 @@ public class TransactionController {
 
         String cpf = jwt.getClaimAsString("cpf");
 
-        // Busca transações
         List<Transaction> transactions = transactionService.findTransactions(
                 accountId,
                 cpf,

@@ -16,7 +16,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/", "/consent/**", "/callback", "/error", "/accounts/**").permitAll()
                         .anyRequest().authenticated())
-                .csrf(csrf -> csrf.disable()); // Apenas para desenvolvimento
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }

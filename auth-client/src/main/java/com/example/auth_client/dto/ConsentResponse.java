@@ -10,10 +10,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Response ao criar/consultar consentimento
- * Authorization Server → Client TPP
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -30,9 +26,6 @@ public class ConsentResponse {
     @JsonProperty("meta")
     private Meta meta;
 
-    /**
-     * Dados do consentimento
-     */
     @lombok.Data
     @Builder
     @NoArgsConstructor
@@ -40,76 +33,39 @@ public class ConsentResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {
 
-        /**
-         * ID único do consentimento
-         */
         @JsonProperty("consentId")
         private String consentId;
 
-        /**
-         * Data/hora de criação
-         */
         @JsonProperty("creationDateTime")
         private LocalDateTime creationDateTime;
 
-        /**
-         * Status atual
-         * Valores: AWAITING_AUTHORISATION, AUTHORISED, REJECTED, REVOKED
-         */
         @JsonProperty("status")
         private String status;
 
-        /**
-         * Data/hora da última atualização de status
-         */
         @JsonProperty("statusUpdateDateTime")
         private LocalDateTime statusUpdateDateTime;
 
-        /**
-         * Data/hora de expiração
-         */
         @JsonProperty("expirationDateTime")
         private LocalDateTime expirationDateTime;
 
-        /**
-         * Permissões concedidas
-         */
         @JsonProperty("permissions")
         private List<String> permissions;
 
-        /**
-         * Usuário logado
-         */
         @JsonProperty("loggedUser")
         private LoggedUser loggedUser;
 
-        /**
-         * Entidade de negócio
-         */
         @JsonProperty("businessEntity")
         private BusinessEntity businessEntity;
 
-        /**
-         * Data/hora inicial para transações
-         */
         @JsonProperty("transactionFromDateTime")
         private LocalDateTime transactionFromDateTime;
 
-        /**
-         * Data/hora final para transações
-         */
         @JsonProperty("transactionToDateTime")
         private LocalDateTime transactionToDateTime;
 
-        /**
-         * Razão de rejeição (se status = REJECTED)
-         */
         @JsonProperty("rejectionReason")
         private RejectionReason rejectionReason;
 
-        /**
-         * Razão de revogação (se status = REVOKED)
-         */
         @JsonProperty("revocationReason")
         private RevocationReason revocationReason;
     }

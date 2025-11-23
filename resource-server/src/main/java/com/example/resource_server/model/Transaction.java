@@ -18,7 +18,7 @@ public class Transaction {
     private String accountId;
 
     @Column(nullable = false)
-    private String type; // DEBIT, CREDIT
+    private String type;
 
     @Column(nullable = false)
     private BigDecimal amount;

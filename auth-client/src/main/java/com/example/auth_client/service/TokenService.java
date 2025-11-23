@@ -30,9 +30,6 @@ public class TokenService {
         this.restTemplate = restTemplate;
     }
 
-    /**
-     * PASSO 3: Troca authorization code por tokens (COM mTLS)
-     */
     public TokenResponse exchangeCodeForToken(String code, String codeVerifier) {
 
         String tokenEndpoint = authorizationServer + "/oauth2/token";
@@ -49,7 +46,6 @@ public class TokenService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        // RestTemplate usa mTLS + envia certificado automaticamente
         ResponseEntity<TokenResponse> response = restTemplate.postForEntity(
                 tokenEndpoint,
                 request,
@@ -58,9 +54,6 @@ public class TokenService {
         return response.getBody();
     }
 
-    /**
-     * Renova access token usando refresh token (COM mTLS)
-     */
     public TokenResponse refreshToken(String refreshToken) {
 
         String tokenEndpoint = authorizationServer + "/oauth2/token";

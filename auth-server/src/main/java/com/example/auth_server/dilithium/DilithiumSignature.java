@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 
-@Component
+@Component("dilithiumService")
 public class DilithiumSignature {
 
     private KeyPair keyPair;

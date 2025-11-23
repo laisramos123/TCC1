@@ -10,9 +10,6 @@ import java.util.Base64;
 @Component
 public class PkceGenerator {
 
-    /**
-     * Gera code_verifier
-     */
     public String generateCodeVerifier() {
         SecureRandom secureRandom = new SecureRandom();
         byte[] codeVerifier = new byte[32];
@@ -23,9 +20,6 @@ public class PkceGenerator {
                 .encodeToString(codeVerifier);
     }
 
-    /**
-     * Gera code_challenge (SHA-256 do verifier)
-     */
     public String generateCodeChallenge(String codeVerifier) {
         try {
             byte[] bytes = codeVerifier.getBytes(StandardCharsets.US_ASCII);

@@ -1,8 +1,7 @@
 package com.example.auth_server.config;
 
 import com.example.auth_server.jwt.CustomJwtEncoder;
-import com.example.auth_server.security.ConsentAwareAuthorizationProvider;
-import com.example.auth_server.security.ConsentValidationFilter;
+
 import com.example.auth_server.security.JwtTokenCustomizer;
 import com.example.auth_server.signature.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,9 +18,6 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.time.Duration;
 
@@ -39,32 +35,10 @@ public class AuthorizationServerConfig {
 
     public AuthorizationServerConfig(
             @Qualifier("rsaSignature") SignatureAlgorithm rsaSignature,
-            @Qualifier("dilithiumSignature") SignatureAlgorithm dilithiumSignature) {
+            @Qualifier("dilithiumAlgorithm") SignatureAlgorithm dilithiumSignature) {
 
         this.rsaSignature = rsaSignature;
         this.dilithiumSignature = dilithiumSignature;
-    }
-
-    @Bean
-    @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(
-            HttpSecurity http,
-            ConsentAwareAuthorizationProvider consentProvider) throws Exception {
-
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-
-        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-                .oidc(Customizer.withDefaults());
-
-        http
-                .addFilterBefore(
-                        new ConsentValidationFilter(consentProvider),
-                        UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling((exceptions) -> exceptions
-                        .authenticationEntryPoint(
-                                new LoginUrlAuthenticationEntryPoint("/login")));
-
-        return http.build();
     }
 
     @Bean
