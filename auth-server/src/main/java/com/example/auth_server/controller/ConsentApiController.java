@@ -13,10 +13,6 @@ import com.example.auth_server.service.ConsentService;
 
 import java.util.List;
 
-/**
- * FASE 1: CONSENT API
- * Gerencia o ciclo de vida dos consentimentos
- */
 @RestController
 @RequestMapping("/open-banking/consents/v2/consents")
 public class ConsentApiController {
@@ -24,12 +20,8 @@ public class ConsentApiController {
         @Autowired
         private ConsentService consentService;
 
-        /**
-         * Criar consentimento
-         * POST /open-banking/consents/v2/consents
-         * 
-         * @throws BadRequestException
-         */
+        // @throws BadRequestException
+
         @PostMapping
         public ResponseEntity<ConsentResponse> createConsent(
                         @RequestBody ConsentRequest request,
@@ -48,10 +40,6 @@ public class ConsentApiController {
                 }
         }
 
-        /**
-         * Consultar consentimento
-         * GET /open-banking/consents/v2/consents/{consentId}
-         */
         @GetMapping("/{consentId}")
         public ResponseEntity<ConsentResponse> getConsent(
                         @PathVariable String consentId,
@@ -65,10 +53,6 @@ public class ConsentApiController {
                                 .body(response);
         }
 
-        /**
-         * Deletar/Revogar consentimento
-         * DELETE /open-banking/consents/v2/consents/{consentId}
-         */
         @DeleteMapping("/{consentId}")
         public ResponseEntity<Void> deleteConsent(
                         @PathVariable String consentId,
@@ -83,10 +67,6 @@ public class ConsentApiController {
                                 .build();
         }
 
-        /**
-         * Listar consentimentos (opcional)
-         * GET /open-banking/consents/v2/consents?cpf=12345678900
-         */
         @GetMapping
         public ResponseEntity<ConsentListResponse> listConsents(
                         @RequestParam(required = false) String cpf,

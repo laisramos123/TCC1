@@ -152,16 +152,13 @@ class RateLimitFilter extends OncePerRequestFilter {
         log.warn("Rate limit exceeded for client");
     }
 
-    /**
-     * Clean up old buckets periodically to prevent memory leak
-     */
     @jakarta.annotation.PostConstruct
     public void startCleanupTask() {
-        // Schedule cleanup every hour
+
         java.util.concurrent.Executors.newSingleThreadScheduledExecutor()
                 .scheduleAtFixedRate(() -> {
                     int sizeBefore = buckets.size();
-                    // Remove buckets that haven't been used recently
+
                     buckets.entrySet().removeIf(entry -> entry.getValue().getAvailableTokens() == requestsPerMinute);
                     int sizeAfter = buckets.size();
                     if (sizeBefore != sizeAfter) {

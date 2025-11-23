@@ -29,9 +29,6 @@ public class SecurityConfig {
         @Autowired
         private X509AuthenticationFilter x509AuthenticationFilter;
 
-        /**
-         * Security filter chain com suporte a mTLS
-         */
         @Bean
         @Order(2)
         public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -47,15 +44,12 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .anyRequest().authenticated())
 
-                                // Adiciona filtro X.509 para mTLS
                                 .addFilter(x509AuthenticationFilter)
 
-                                // Form login
                                 .formLogin(form -> form
                                                 .loginPage("/login")
                                                 .permitAll())
 
-                                // Logout
                                 .logout(logout -> logout
                                                 .logoutSuccessUrl("/")
                                                 .permitAll());
@@ -63,9 +57,6 @@ public class SecurityConfig {
                 return http.build();
         }
 
-        /**
-         * Configura Authentication Manager com mTLS provider
-         */
         @Bean
         public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
                 AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);

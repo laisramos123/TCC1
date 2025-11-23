@@ -24,13 +24,10 @@ public class ConsentService {
     @Transactional
     public ConsentResponse createConsent(ConsentRequest request) {
 
-        // Valida request
         validateConsentRequest(request);
 
-        // Gera consent ID único (URN format)
         String consentId = "urn:banco:" + UUID.randomUUID().toString();
 
-        // Cria entidade
         Consent consent = Consent.builder()
                 .consentId(consentId)
                 .loggedUserDocument(request.getData().getLoggedUser().getDocument().getIdentification())
@@ -46,16 +43,11 @@ public class ConsentService {
                 .transactionToDateTime(request.getData().getTransactionToDateTime())
                 .build();
 
-        // Salva
         consent = consentRepository.save(consent);
 
-        // Converte para response
         return toConsentResponse(consent);
     }
 
-    /**
-     * FASE 1 - PASSO 2: Consultar consentimento
-     */
     public ConsentResponse getConsent(String consentId) {
         Consent consent = consentRepository.findById(consentId)
                 .orElseThrow(() -> new RuntimeException("Consentimento não encontrado"));
@@ -63,10 +55,6 @@ public class ConsentService {
         return toConsentResponse(consent);
     }
 
-    /**
-     * FASE 1 - PASSO 3: Atualizar status do consentimento
-     * Usado pelo Authorization Server durante OAuth2
-     */
     @Transactional
     public ConsentResponse updateStatus(String consentId, ConsentStatus newStatus) {
 
@@ -81,9 +69,6 @@ public class ConsentService {
         return toConsentResponse(consent);
     }
 
-    /**
-     * FASE 1 - PASSO 4: Revogar consentimento
-     */
     @Transactional
     public void revokeConsent(String consentId, String reasonCode, String revokedBy) {
 
@@ -99,54 +84,40 @@ public class ConsentService {
         consentRepository.save(consent);
     }
 
-    /**
-     * FASE 2 - Validar consentimento durante OAuth2
-     */
     public void validateConsentForAuthorization(String consentId) {
 
         Consent consent = consentRepository.findById(consentId)
                 .orElseThrow(() -> new RuntimeException("Consentimento não encontrado"));
 
-        // Verifica status
         if (consent.getStatus() != ConsentStatus.AWAITING_AUTHORISATION) {
             throw new RuntimeException(
                     "Consentimento não está aguardando autorização. Status: " + consent.getStatus());
         }
 
-        // Verifica expiração
         if (consent.getExpirationDateTime().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Consentimento expirado");
         }
     }
 
-    /**
-     * FASE 3 - Validar consentimento para uso nos recursos
-     */
     public void validateConsentForResourceAccess(String consentId, String requiredPermission) {
 
         Consent consent = consentRepository.findById(consentId)
                 .orElseThrow(() -> new RuntimeException("Consentimento não encontrado"));
 
-        // Verifica se está autorizado
         if (consent.getStatus() != ConsentStatus.AUTHORISED) {
             throw new RuntimeException("Consentimento não está autorizado");
         }
 
-        // Verifica expiração
         if (consent.getExpirationDateTime().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Consentimento expirado");
         }
 
-        // Verifica permissão específica
         if (!consent.getPermissions().contains(requiredPermission)) {
             throw new RuntimeException(
                     "Consentimento não possui a permissão: " + requiredPermission);
         }
     }
 
-    /**
-     * Listar consentimentos de um usuário
-     */
     public List<ConsentResponse> listConsents(String cpf) {
         return consentRepository.findByLoggedUserDocument(cpf)
                 .stream()
@@ -154,9 +125,6 @@ public class ConsentService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Valida ConsentRequest
-     */
     private void validateConsentRequest(ConsentRequest request) {
 
         if (request.getData() == null) {
@@ -165,19 +133,16 @@ public class ConsentService {
 
         ConsentRequest.Data data = request.getData();
 
-        // Valida documento
         if (data.getLoggedUser() == null ||
                 data.getLoggedUser().getDocument() == null ||
                 data.getLoggedUser().getDocument().getIdentification() == null) {
             throw new IllegalArgumentException("loggedUser.document.identification é obrigatório");
         }
 
-        // Valida permissions
         if (data.getPermissions() == null || data.getPermissions().isEmpty()) {
             throw new IllegalArgumentException("permissions é obrigatório");
         }
 
-        // Valida expirationDateTime
         if (data.getExpirationDateTime() == null) {
             throw new IllegalArgumentException("expirationDateTime é obrigatório");
         }
@@ -194,9 +159,6 @@ public class ConsentService {
         }
     }
 
-    /**
-     * Converte entidade para DTO
-     */
     private ConsentResponse toConsentResponse(Consent consent) {
 
         return ConsentResponse.builder()

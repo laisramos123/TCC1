@@ -19,7 +19,6 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
 
-        // Cache para consentimentos (TTL: 5 minutos)
         cacheManager.registerCustomCache("consents",
                 Caffeine.newBuilder()
                         .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -27,7 +26,6 @@ public class CacheConfig {
                         .recordStats()
                         .build());
 
-        // Cache para tokens JWT (TTL: 30 minutos)
         cacheManager.registerCustomCache("tokens",
                 Caffeine.newBuilder()
                         .expireAfterWrite(30, TimeUnit.MINUTES)
@@ -35,7 +33,6 @@ public class CacheConfig {
                         .recordStats()
                         .build());
 
-        // Cache para chaves públicas Dilithium (TTL: 1 hora)
         cacheManager.registerCustomCache("dilithiumKeys",
                 Caffeine.newBuilder()
                         .expireAfterWrite(1, TimeUnit.HOURS)
@@ -43,7 +40,6 @@ public class CacheConfig {
                         .recordStats()
                         .build());
 
-        // Cache para validações de consentimento (TTL: 1 minuto)
         cacheManager.registerCustomCache("consentValidations",
                 Caffeine.newBuilder()
                         .expireAfterWrite(1, TimeUnit.MINUTES)

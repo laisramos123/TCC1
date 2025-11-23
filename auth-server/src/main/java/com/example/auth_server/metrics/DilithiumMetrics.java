@@ -20,7 +20,7 @@ public class DilithiumMetrics {
     private final Timer keyGenerationTimer;
 
     public DilithiumMetrics(MeterRegistry registry) {
-        // Contadores de operações
+
         this.signatureCounter = Counter.builder("dilithium.signatures.total")
                 .description("Total de assinaturas Dilithium criadas")
                 .tag("algorithm", "dilithium3")
@@ -31,7 +31,6 @@ public class DilithiumMetrics {
                 .tag("algorithm", "dilithium3")
                 .register(registry);
 
-        // Contadores de consentimento
         this.consentCreatedCounter = Counter.builder("openbanking.consent.created.total")
                 .description("Total de consentimentos criados")
                 .register(registry);
@@ -44,7 +43,6 @@ public class DilithiumMetrics {
                 .description("Total de consentimentos rejeitados")
                 .register(registry);
 
-        // Timers para performance
         this.signatureTimer = Timer.builder("dilithium.signature.duration")
                 .description("Tempo para criar assinatura Dilithium")
                 .publishPercentiles(0.5, 0.95, 0.99)

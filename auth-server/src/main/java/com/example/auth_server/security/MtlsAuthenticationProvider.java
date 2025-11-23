@@ -10,10 +10,6 @@ import org.springframework.stereotype.Component;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-/**
- * Provider de autenticação mTLS
- * Valida certificados X.509 do cliente
- */
 @Component
 public class MtlsAuthenticationProvider implements AuthenticationProvider {
 
@@ -24,12 +20,10 @@ public class MtlsAuthenticationProvider implements AuthenticationProvider {
 
             X509Certificate certificate = (X509Certificate) authentication.getCredentials();
 
-            // Valida o certificado
             if (isValidCertificate(certificate)) {
 
                 String clientId = extractClientId(certificate);
 
-                // Cria autenticação com authorities
                 return new PreAuthenticatedAuthenticationToken(
                         clientId,
                         certificate,
@@ -45,23 +39,15 @@ public class MtlsAuthenticationProvider implements AuthenticationProvider {
         return PreAuthenticatedAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
-    /**
-     * Valida certificado X.509
-     */
     private boolean isValidCertificate(X509Certificate cert) {
         try {
-            // Verifica validade temporal
+
             cert.checkValidity();
 
-            // Verifica emissor (CA)
             String issuer = cert.getIssuerDN().getName();
             if (!issuer.contains("OpenFinance-CA") && !issuer.contains("ICP-Brasil")) {
                 return false;
             }
-
-            // TODO: Validar cadeia completa do certificado
-            // TODO: Verificar CRL (Certificate Revocation List)
-            // TODO: Validar OCSP (Online Certificate Status Protocol)
 
             return true;
 
@@ -70,13 +56,9 @@ public class MtlsAuthenticationProvider implements AuthenticationProvider {
         }
     }
 
-    /**
-     * Extrai Client ID do certificado
-     */
     private String extractClientId(X509Certificate cert) {
         String dn = cert.getSubjectDN().getName();
 
-        // Extrai CN (Common Name)
         String[] parts = dn.split(",");
         for (String part : parts) {
             if (part.trim().startsWith("CN=")) {

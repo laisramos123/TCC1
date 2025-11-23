@@ -29,7 +29,7 @@ public class CustomJwtDecoder implements JwtDecoder {
 
             String[] parts = token.split("\\.");
             if (parts.length != 3) {
-                throw new JwtException("Invalid JWT format");
+                throw new JwtException("Formato JWT inválido");
             }
 
             String headerBase64 = parts[0];
@@ -45,7 +45,6 @@ public class CustomJwtDecoder implements JwtDecoder {
             @SuppressWarnings("unchecked")
             Map<String, Object> claims = objectMapper.readValue(payloadJson, Map.class);
 
-            // 3. Verify signature
             String signingInput = headerBase64 + "." + payloadBase64;
             byte[] signatureBytes = base64UrlDecode(signatureBase64);
 
@@ -55,14 +54,13 @@ public class CustomJwtDecoder implements JwtDecoder {
                     signatureAlgorithm.getPublicKey());
 
             if (!isValid) {
-                throw new JwtException("Invalid JWT signature - " + signatureAlgorithm.getAlgorithmName());
+                throw new JwtException("Assinatura JWT Inválida   - " + signatureAlgorithm.getAlgorithmName());
             }
 
-            log.info("✅ JWT verified with {} - Algorithm: {}",
+            log.info("  JWT verificado com {} - Algorithm: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     header.get("alg"));
 
-            // 4. Extract timestamps
             Instant issuedAt = claims.containsKey("iat")
                     ? Instant.ofEpochSecond(((Number) claims.get("iat")).longValue())
                     : Instant.now();
@@ -71,9 +69,8 @@ public class CustomJwtDecoder implements JwtDecoder {
                     ? Instant.ofEpochSecond(((Number) claims.get("exp")).longValue())
                     : issuedAt.plusSeconds(3600);
 
-            // 5. Validate expiration
             if (Instant.now().isAfter(expiresAt)) {
-                throw new JwtException("JWT token expired");
+                throw new JwtException("JWT token expirado");
             }
 
             return new Jwt(token, issuedAt, expiresAt, header, claims);
@@ -81,10 +78,10 @@ public class CustomJwtDecoder implements JwtDecoder {
         } catch (JwtException e) {
             throw e;
         } catch (Exception e) {
-            log.error("❌ Error decoding JWT with {}: {}",
+            log.error("  Erro decodificando JWT com {}: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     e.getMessage());
-            throw new JwtException("Failed to decode JWT", e);
+            throw new JwtException("Falha ao decodificar JWT", e);
         }
     }
 

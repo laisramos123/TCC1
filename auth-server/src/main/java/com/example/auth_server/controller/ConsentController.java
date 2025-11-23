@@ -10,9 +10,6 @@ import com.example.auth_server.dto.ConsentResponse;
 import com.example.auth_server.security.ConsentAwareAuthorizationProvider;
 import com.example.auth_server.service.ConsentService;
 
-/**
- * FASE 2 - PASSO 2: Controller da tela de consentimento
- */
 @Controller
 public class ConsentController {
 
@@ -22,10 +19,6 @@ public class ConsentController {
     @Autowired
     private ConsentAwareAuthorizationProvider consentProvider;
 
-    /**
-     * Exibe página de consentimento
-     * Chamada automaticamente pelo Spring Authorization Server
-     */
     @GetMapping("/oauth2/consent")
     public String consentPage(
             @RequestParam(name = "state", required = false) String state,
@@ -38,7 +31,6 @@ public class ConsentController {
             return "redirect:/error?message=Scope não fornecido";
         }
 
-        // Extrai consent ID do scope
         String consentId = extractConsentId(scope);
 
         if (consentId == null) {
@@ -46,10 +38,9 @@ public class ConsentController {
         }
 
         try {
-            // Busca detalhes do consentimento via Consent API
+
             ConsentResponse consent = consentService.getConsent(consentId);
 
-            // Adiciona dados ao model
             model.addAttribute("consentId", consentId);
             model.addAttribute("clientId", clientId);
             model.addAttribute("scope", scope);
@@ -65,39 +56,26 @@ public class ConsentController {
         }
     }
 
-    /**
-     * Usuário APROVA o consentimento
-     */
     @PostMapping("/oauth2/consent/approve")
     public String approveConsent(
             @RequestParam String state,
             @RequestParam String scope) {
 
-        // Atualiza status do consentimento para AUTHORISED
         consentProvider.updateConsentAfterAuthorization(scope);
 
-        // Redireciona de volta para o fluxo OAuth2
         return "redirect:/oauth2/authorize?state=" + state;
     }
 
-    /**
-     * Usuário NEGA o consentimento
-     */
     @PostMapping("/oauth2/consent/deny")
     public String denyConsent(
             @RequestParam String state,
             @RequestParam String scope) {
 
-        // Marca consentimento como REJECTED
         consentProvider.markConsentAsRejected(scope, "CUSTOMER_MANUALLY_REJECTED");
 
-        // Redireciona com erro
         return "redirect:/oauth2/authorize?error=access_denied&state=" + state;
     }
 
-    /**
-     * Extrai consent ID do scope
-     */
     private String extractConsentId(String scope) {
         for (String s : scope.split(" ")) {
             if (s.startsWith("consent:")) {

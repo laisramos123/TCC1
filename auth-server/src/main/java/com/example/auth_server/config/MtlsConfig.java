@@ -19,10 +19,6 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
-/**
- * NOVO: Configuração mTLS para Auth Server
- * Necessário para chamar APIs externas com certificado cliente
- */
 @Configuration
 public class MtlsConfig {
 
@@ -41,45 +37,38 @@ public class MtlsConfig {
     @Bean
     public RestTemplate mtlsRestTemplate() throws Exception {
 
-        // Carrega KeyStore
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         try (FileInputStream kis = new FileInputStream(resolveClasspath(keyStorePath))) {
             keyStore.load(kis, keyStorePassword.toCharArray());
         }
 
-        // Carrega TrustStore
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
         try (FileInputStream tis = new FileInputStream(resolveClasspath(trustStorePath))) {
             trustStore.load(tis, trustStorePassword.toCharArray());
         }
 
-        // Configura SSL Context
         SSLContext sslContext = SSLContextBuilder.create()
                 .loadKeyMaterial(keyStore, keyStorePassword.toCharArray())
                 .loadTrustMaterial(trustStore, new TrustStrategy() {
                     @Override
                     public boolean isTrusted(X509Certificate[] chain, String authType) {
-                        return true; // DEV only
+                        return true;
                     }
                 })
                 .build();
 
-        // Configura Socket Factory (NoopHostnameVerifier apenas para DEV!)
         SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 sslContext,
                 NoopHostnameVerifier.INSTANCE);
 
-        // Configura Connection Manager
         HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(socketFactory)
                 .build();
 
-        // Cria HttpClient 5
         CloseableHttpClient httpClient = HttpClients.custom()
                 .setConnectionManager(connectionManager)
                 .build();
 
-        // Cria RestTemplate
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         factory.setConnectTimeout(10000);
 

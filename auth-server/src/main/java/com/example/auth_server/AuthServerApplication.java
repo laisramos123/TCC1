@@ -30,6 +30,6 @@ public class AuthServerApplication {
         if (Security.getProvider("BCPQC") == null) {
             throw new RuntimeException("BouncyCastle PQC provider não carregado!");
         }
-        System.out.println("✅ Providers  carregados com sucesso!");
+        System.out.println("Providers carregados com sucesso!");
     }
 }

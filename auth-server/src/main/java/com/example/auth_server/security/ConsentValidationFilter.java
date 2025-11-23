@@ -8,10 +8,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * FASE 2 - PASSO 1: Filtro que valida consentimento
- * Intercepta /oauth2/authorize ANTES do processamento OAuth2
- */
 public class ConsentValidationFilter extends OncePerRequestFilter {
 
     private final ConsentAwareAuthorizationProvider consentProvider;
@@ -26,18 +22,16 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        // Só processa endpoint de autorização
         if (!request.getRequestURI().contains("/oauth2/authorize")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extrai scope do request
         String scope = request.getParameter("scope");
 
         if (scope != null && !scope.isEmpty()) {
             try {
-                // VALIDA CONSENTIMENTO via Consent API
+
                 consentProvider.validateConsentBeforeAuthorization(scope);
 
                 logger.info("Consentimento validado com sucesso para scope: " + scope);
@@ -45,7 +39,6 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
             } catch (Exception e) {
                 logger.error("Erro ao validar consentimento: " + e.getMessage());
 
-                // Retorna erro OAuth2
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write(String.format(
@@ -55,7 +48,6 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
             }
         }
 
-        // Continua o fluxo
         filterChain.doFilter(request, response);
     }
 }

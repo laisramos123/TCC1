@@ -29,7 +29,6 @@ public enum ConsentStatus {
         throw new IllegalArgumentException("Status de consentimento inválido: " + value);
     }
 
-    // Métodos de conveniência para regras de negócio
     public boolean isActive() {
         return this == AUTHORISED;
     }
