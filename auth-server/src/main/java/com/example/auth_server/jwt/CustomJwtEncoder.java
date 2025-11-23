@@ -15,8 +15,6 @@ import java.util.Map;
 
 public class CustomJwtEncoder implements JwtEncoder {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomJwtEncoder.class);
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomJwtEncoder.class);
-
 
     private final SignatureAlgorithm signatureAlgorithm;
     private final ObjectMapper objectMapper;
@@ -31,7 +29,6 @@ public class CustomJwtEncoder implements JwtEncoder {
     @Override
     public Jwt encode(JwtEncoderParameters parameters) throws JwtEncodingException {
         try {
-
             Map<String, Object> header = new HashMap<>();
             header.put("alg", signatureAlgorithm.getJwtAlgorithmHeader());
             header.put("typ", "JWT");
@@ -58,7 +55,7 @@ public class CustomJwtEncoder implements JwtEncoder {
 
             String tokenValue = signingInput + "." + signatureBase64;
 
-            log.info("  JWT assinado com {} - Tamanho: {} bytes",
+            log.info("JWT assinado com {} - Tamanho: {} bytes",
                     signatureAlgorithm.getAlgorithmName(),
                     tokenValue.length());
 
@@ -78,7 +75,7 @@ public class CustomJwtEncoder implements JwtEncoder {
                     claims);
 
         } catch (Exception e) {
-            log.error("  Error codificando JWT com {}: {}",
+            log.error("Error codificando JWT com {}: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     e.getMessage());
             throw new JwtEncodingException("Falha ao codificar JWT", e);
@@ -97,6 +94,3 @@ public class CustomJwtEncoder implements JwtEncoder {
                 .encodeToString(data);
     }
 }
-
-
-

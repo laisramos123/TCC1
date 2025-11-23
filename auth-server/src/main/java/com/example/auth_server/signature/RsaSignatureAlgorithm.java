@@ -1,14 +1,11 @@
 package com.example.auth_server.signature;
 
 import org.springframework.stereotype.Component;
-
 import java.security.*;
 
 @Component("rsaSignature")
 public class RsaSignatureAlgorithm implements SignatureAlgorithm {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RsaSignatureAlgorithm.class);
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RsaSignatureAlgorithm.class);
-
 
     private KeyPair keyPair;
     private final SignatureMetrics metrics = new SignatureMetrics();
@@ -86,5 +83,3 @@ public class RsaSignatureAlgorithm implements SignatureAlgorithm {
         return metrics;
     }
 }
-
-

@@ -12,81 +12,81 @@ import com.example.auth_server.dto.ConsentResponse;
 import com.example.auth_server.service.ConsentService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/open-banking/consents/v2/consents")
 public class ConsentApiController {
 
-        @Autowired
-        private ConsentService consentService;
+    @Autowired
+    private ConsentService consentService;
 
-        // @throws BadRequestException
+    @PostMapping
+    public ResponseEntity<ConsentResponse> createConsent(
+            @RequestBody ConsentRequest request,
+            @RequestHeader("x-fapi-interaction-id") String interactionId) throws BadRequestException {
 
-        @PostMapping
-        public ResponseEntity<ConsentResponse> createConsent(
-                        @RequestBody ConsentRequest request,
-                        @RequestHeader("x-fapi-interaction-id") String interactionId) throws BadRequestException {
+        try {
+            ConsentResponse response = consentService.createConsent(request);
 
-                try {
-                        ConsentResponse response = consentService.createConsent(request);
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .header("x-fapi-interaction-id", interactionId)
+                    .body(response);
 
-                        return ResponseEntity
-                                        .status(HttpStatus.CREATED)
-                                        .header("x-fapi-interaction-id", interactionId)
-                                        .body(response);
-
-                } catch (IllegalArgumentException e) {
-                        throw new BadRequestException(e.getMessage());
-                }
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage());
         }
+    }
 
-        @GetMapping("/{consentId}")
-        public ResponseEntity<ConsentResponse> getConsent(
-                        @PathVariable String consentId,
-                        @RequestHeader("x-fapi-interaction-id") String interactionId) {
+    @GetMapping("/{consentId}")
+    public ResponseEntity<ConsentResponse> getConsent(
+            @PathVariable String consentId,
+            @RequestHeader("x-fapi-interaction-id") String interactionId) {
 
-                ConsentResponse response = consentService.getConsent(consentId);
+        ConsentResponse response = consentService.getConsent(consentId);
 
-                return ResponseEntity
-                                .ok()
-                                .header("x-fapi-interaction-id", interactionId)
-                                .body(response);
-        }
+        return ResponseEntity
+                .ok()
+                .header("x-fapi-interaction-id", interactionId)
+                .body(response);
+    }
 
-        @DeleteMapping("/{consentId}")
-        public ResponseEntity<Void> deleteConsent(
-                        @PathVariable String consentId,
-                        @RequestHeader("x-fapi-interaction-id") String interactionId,
-                        @RequestHeader(value = "x-revoked-by", defaultValue = "TPP") String revokedBy) {
+    @DeleteMapping("/{consentId}")
+    public ResponseEntity<Void> deleteConsent(
+            @PathVariable String consentId,
+            @RequestHeader("x-fapi-interaction-id") String interactionId,
+            @RequestHeader(value = "x-revoked-by", defaultValue = "TPP") String revokedBy) {
 
-                consentService.revokeConsent(consentId, "TPP_REQUESTED", revokedBy);
+        // Chamada correta com 3 parâmetros
+        consentService.revokeConsent(consentId, "TPP_REQUESTED", revokedBy);
 
-                return ResponseEntity
-                                .status(HttpStatus.NO_CONTENT)
-                                .header("x-fapi-interaction-id", interactionId)
-                                .build();
-        }
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .header("x-fapi-interaction-id", interactionId)
+                .build();
+    }
 
-        @GetMapping
-        public ResponseEntity<ConsentListResponse> listConsents(
-                        @RequestParam(required = false) String cpf,
-                        @RequestHeader("x-fapi-interaction-id") String interactionId) {
+    @GetMapping
+    public ResponseEntity<ConsentListResponse> listConsents(
+            @RequestParam(required = false) String cpf,
+            @RequestHeader("x-fapi-interaction-id") String interactionId) {
 
-                List<ConsentResponse> consents = consentService.listConsents(cpf);
+        List<ConsentResponse> consents = consentService.listConsents(cpf);
 
-                ConsentListResponse response = ConsentListResponse.builder()
-                                .data(consents.stream()
-                                                .map(ConsentResponse::getData)
-                                                .toList())
-                                .meta(ConsentResponse.Meta.builder()
-                                                .totalRecords(consents.size())
-                                                .totalPages(1)
-                                                .build())
-                                .build();
+        ConsentListResponse response = new ConsentListResponse();
+        response.setData(consents.stream()
+                .map(ConsentResponse::getData)
+                .collect(Collectors.toList()));
+        
+        ConsentListResponse.Meta meta = new ConsentListResponse.Meta();
+        meta.setTotalRecords(consents.size());
+        meta.setTotalPages(1);
+        response.setMeta(meta);
 
-                return ResponseEntity
-                                .ok()
-                                .header("x-fapi-interaction-id", interactionId)
-                                .body(response);
-        }
+        return ResponseEntity
+                .ok()
+                .header("x-fapi-interaction-id", interactionId)
+                .body(response);
+    }
 }

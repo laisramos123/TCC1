@@ -1,26 +1,49 @@
 package com.example.auth_server.signature;
 
+import org.springframework.stereotype.Component;
+import java.util.concurrent.atomic.AtomicLong;
+
+@Component
 public class SignatureMetrics {
-    private long keyGenerationTime;
-    private long signatureTime;
-    private long verificationTime;
-    private int keySize;
-    private String algorithm;
+    private final AtomicLong keyGenerationTime = new AtomicLong(0);
+    private final AtomicLong signOperations = new AtomicLong(0);
+    private final AtomicLong verifyOperations = new AtomicLong(0);
+    private final AtomicLong totalSignTime = new AtomicLong(0);
+    private final AtomicLong totalVerifyTime = new AtomicLong(0);
     
-    public SignatureMetrics() {}
+    public void setKeyGenerationTime(long time) {
+        keyGenerationTime.set(time);
+    }
     
-    public long getKeyGenerationTime() { return keyGenerationTime; }
-    public void setKeyGenerationTime(long keyGenerationTime) { this.keyGenerationTime = keyGenerationTime; }
+    public long getKeyGenerationTime() {
+        return keyGenerationTime.get();
+    }
     
-    public long getSignatureTime() { return signatureTime; }
-    public void setSignatureTime(long signatureTime) { this.signatureTime = signatureTime; }
+    public void recordSignOperation(long duration) {
+        signOperations.incrementAndGet();
+        totalSignTime.addAndGet(duration);
+    }
     
-    public long getVerificationTime() { return verificationTime; }
-    public void setVerificationTime(long verificationTime) { this.verificationTime = verificationTime; }
+    public void recordVerifyOperation(long duration) {
+        verifyOperations.incrementAndGet();
+        totalVerifyTime.addAndGet(duration);
+    }
     
-    public int getKeySize() { return keySize; }
-    public void setKeySize(int keySize) { this.keySize = keySize; }
+    public long getSignOperations() {
+        return signOperations.get();
+    }
     
-    public String getAlgorithm() { return algorithm; }
-    public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
+    public long getVerifyOperations() {
+        return verifyOperations.get();
+    }
+    
+    public double getAverageSignTime() {
+        long ops = signOperations.get();
+        return ops > 0 ? (double) totalSignTime.get() / ops : 0;
+    }
+    
+    public double getAverageVerifyTime() {
+        long ops = verifyOperations.get();
+        return ops > 0 ? (double) totalVerifyTime.get() / ops : 0;
+    }
 }

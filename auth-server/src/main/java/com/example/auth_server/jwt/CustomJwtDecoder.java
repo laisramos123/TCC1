@@ -13,8 +13,6 @@ import java.util.Map;
 
 public class CustomJwtDecoder implements JwtDecoder {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomJwtDecoder.class);
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomJwtDecoder.class);
-
 
     private final SignatureAlgorithm signatureAlgorithm;
     private final ObjectMapper objectMapper;
@@ -27,7 +25,6 @@ public class CustomJwtDecoder implements JwtDecoder {
     @Override
     public Jwt decode(String token) throws JwtException {
         try {
-
             String[] parts = token.split("\\.");
             if (parts.length != 3) {
                 throw new JwtException("Formato JWT inválido");
@@ -55,10 +52,10 @@ public class CustomJwtDecoder implements JwtDecoder {
                     signatureAlgorithm.getPublicKey());
 
             if (!isValid) {
-                throw new JwtException("Assinatura JWT Inválida   - " + signatureAlgorithm.getAlgorithmName());
+                throw new JwtException("Assinatura JWT Inválida - " + signatureAlgorithm.getAlgorithmName());
             }
 
-            log.info("  JWT verificado com {} - Algorithm: {}",
+            log.info("JWT verificado com {} - Algorithm: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     header.get("alg"));
 
@@ -79,7 +76,7 @@ public class CustomJwtDecoder implements JwtDecoder {
         } catch (JwtException e) {
             throw e;
         } catch (Exception e) {
-            log.error("  Erro decodificando JWT com {}: {}",
+            log.error("Erro decodificando JWT com {}: {}",
                     signatureAlgorithm.getAlgorithmName(),
                     e.getMessage());
             throw new JwtException("Falha ao decodificar JWT", e);
@@ -90,6 +87,3 @@ public class CustomJwtDecoder implements JwtDecoder {
         return Base64.getUrlDecoder().decode(data);
     }
 }
-
-
-

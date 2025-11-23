@@ -1,16 +1,6 @@
 package com.example.auth_server.dilithium;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.Security;
-import java.security.Signature;
+import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -20,9 +10,11 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 
+@Component
 public class DilithiumSignature {
 
     private KeyPair keyPair;
@@ -35,8 +27,6 @@ public class DilithiumSignature {
             Security.addProvider(new BouncyCastleProvider());
             Security.addProvider(new BouncyCastlePQCProvider());
             logger.info("Bouncy Castle providers adicionados.");
-        } else {
-            logger.debug("  Bouncy Castle providers já estavam carregados");
         }
     }
 
@@ -45,17 +35,13 @@ public class DilithiumSignature {
     }
 
     public DilithiumSignature(DilithiumParameterSpec paramSpec) {
-
         this.parameterSpec = paramSpec;
     }
 
-    public KeyPair keyPair()
-            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-
+    public KeyPair keyPair() throws Exception {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("Dilithium", "BCPQC");
         keyPairGen.initialize(parameterSpec, new SecureRandom());
         return this.keyPair = keyPairGen.generateKeyPair();
-
     }
 
     public boolean verify(byte[] data, byte[] signatureBytes, PublicKey publicKey) throws Exception {
@@ -77,21 +63,6 @@ public class DilithiumSignature {
         return parameterSpec;
     }
 
-    public void printKeysAndSaveBase64() {
-        if (keyPair == null) {
-            logger.warn("Chave não gerada. Chame keyPair() primeiro.");
-            return;
-        }
-        String publicKeyBase64 = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
-        String privateKeyBase64 = Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
-
-        logger.info("Public Key (Base64): " + publicKeyBase64);
-        logger.info("Private Key (Base64): " + privateKeyBase64);
-
-        logger.info("Private Key (Base64) Size: " + privateKeyBase64.length());
-        logger.info("Public Key (Base64) Size: " + publicKeyBase64.length());
-    }
-
     public PrivateKey loadPrivateKeyFromBase64(String base64Key) throws Exception {
         byte[] keyBytes = Base64.getDecoder().decode(base64Key);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
@@ -104,14 +75,6 @@ public class DilithiumSignature {
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("Dilithium", "BCPQC");
         return keyFactory.generatePublic(keySpec);
-    }
-
-    public static class SecurityLevels {
-
-        public static DilithiumSignature level3() {
-            return new DilithiumSignature(DilithiumParameterSpec.dilithium3);
-        }
-
     }
 
     public byte[] sign(byte[] data) throws Exception {

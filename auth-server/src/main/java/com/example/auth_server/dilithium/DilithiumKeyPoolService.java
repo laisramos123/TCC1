@@ -1,14 +1,5 @@
 package com.example.auth_server.dilithium;
 
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
-
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,15 +13,14 @@ import jakarta.annotation.PreDestroy;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
-@Slf4j
 public class DilithiumKeyPoolService {
-
-    private static final Logger logger = LoggerFactory.getLogger(DilithiumKeyPoolService.class);
+    private static final Logger log = LoggerFactory.getLogger(DilithiumKeyPoolService.class);
 
     @Value("${dilithium.key.pool.size:10}")
     private int poolSize;
@@ -60,37 +50,33 @@ public class DilithiumKeyPoolService {
 
     @PostConstruct
     public void init() {
-        logger.info("Inicializando Dilithium Key Pool Service...");
-
+        log.info("Inicializando Dilithium Key Pool Service...");
         loadOrGeneratePrimaryKey();
 
         if (precomputeKeys) {
-
             startKeyPoolGeneration();
-
             scheduler.scheduleWithFixedDelay(
                     this::replenishKeyPool,
                     30, 30, TimeUnit.SECONDS);
         }
 
-        logger.info("Dilithium Key Pool Service inicializado com sucesso");
+        log.info("Dilithium Key Pool Service inicializado com sucesso");
     }
 
     private void loadOrGeneratePrimaryKey() {
         try {
-
-            if (cacheEnabled) {
+            if (cacheEnabled && redisTemplate != null) {
                 String cachedPrivateKey = redisTemplate.opsForValue().get("dilithium:primary:private");
                 String cachedPublicKey = redisTemplate.opsForValue().get("dilithium:primary:public");
 
                 if (cachedPrivateKey != null && cachedPublicKey != null) {
                     primaryKeyPair = reconstructKeyPair(cachedPrivateKey, cachedPublicKey);
-                    logger.info("Chave primária carregada do cache Redis");
+                    log.info("Chave primária carregada do cache Redis");
                     return;
                 }
             }
 
-            logger.info("Gerando nova chave primária Dilithium3...");
+            log.info("Gerando nova chave primária Dilithium3...");
             long startTime = System.currentTimeMillis();
 
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("Dilithium", "BCPQC");
@@ -98,14 +84,14 @@ public class DilithiumKeyPoolService {
             primaryKeyPair = keyGen.generateKeyPair();
 
             long duration = System.currentTimeMillis() - startTime;
-            logger.info("Chave primária gerada em {} ms", duration);
+            log.info("Chave primária gerada em {} ms", duration);
 
-            if (cacheEnabled) {
+            if (cacheEnabled && redisTemplate != null) {
                 cachePrimaryKey();
             }
 
         } catch (Exception e) {
-            logger.error("Erro ao inicializar chave primária", e);
+            log.error("Erro ao inicializar chave primária", e);
             throw new RuntimeException("Falha ao inicializar Dilithium", e);
         }
     }
@@ -117,30 +103,27 @@ public class DilithiumKeyPoolService {
             String publicKeyBase64 = Base64.getEncoder().encodeToString(
                     primaryKeyPair.getPublic().getEncoded());
 
-            redisTemplate.opsForValue().set("dilithium:primary:private",
-                    privateKeyBase64);
+            redisTemplate.opsForValue().set("dilithium:primary:private", privateKeyBase64);
             redisTemplate.opsForValue().set("dilithium:primary:public", publicKeyBase64);
-
-            // Define TTL de 24 horas
             redisTemplate.expire("dilithium:primary:private", 24, TimeUnit.HOURS);
             redisTemplate.expire("dilithium:primary:public", 24, TimeUnit.HOURS);
 
         } catch (Exception e) {
-            logger.error("Erro ao cachear chave primária", e);
+            log.error("Erro ao cachear chave primária", e);
         }
     }
 
     private void startKeyPoolGeneration() {
         keyGenerator.submit(() -> {
-            logger.info("Iniciando geração do pool de chaves...");
+            log.info("Iniciando geração do pool de chaves...");
             for (int i = 0; i < poolSize; i++) {
                 try {
                     generateAndAddKey();
                 } catch (Exception e) {
-                    logger.error("Erro ao gerar chave para o pool", e);
+                    log.error("Erro ao gerar chave para o pool", e);
                 }
             }
-            logger.info("Pool inicial de {} chaves gerado", activeKeys.get());
+            log.info("Pool inicial de {} chaves gerado", activeKeys.get());
         });
     }
 
@@ -159,10 +142,10 @@ public class DilithiumKeyPoolService {
         activeKeys.incrementAndGet();
 
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("Chave adicional gerada em {} ms (Pool: {}/{})",
+        log.debug("Chave adicional gerada em {} ms (Pool: {}/{})",
                 duration, activeKeys.get(), poolSize);
 
-        if (cacheEnabled) {
+        if (cacheEnabled && redisTemplate != null) {
             cacheKeyPair(keyPair);
         }
     }
@@ -180,7 +163,7 @@ public class DilithiumKeyPoolService {
             redisTemplate.expire(keyId, 1, TimeUnit.HOURS);
 
         } catch (Exception e) {
-            logger.error("Erro ao cachear key pair", e);
+            log.error("Erro ao cachear key pair", e);
         }
     }
 
@@ -189,20 +172,20 @@ public class DilithiumKeyPoolService {
             int currentSize = activeKeys.get();
             if (currentSize < minPoolSize) {
                 int toGenerate = poolSize - currentSize;
-                logger.info("Reabastecendo pool de chaves. Gerando {} chaves", toGenerate);
+                log.info("Reabastecendo pool de chaves. Gerando {} chaves", toGenerate);
 
                 for (int i = 0; i < toGenerate; i++) {
                     keyGenerator.submit(() -> {
                         try {
                             generateAndAddKey();
                         } catch (Exception e) {
-                            logger.error("Erro ao reabastecer pool", e);
+                            log.error("Erro ao reabastecer pool", e);
                         }
                     });
                 }
             }
         } catch (Exception e) {
-            logger.error("Erro no reabastecimento do pool", e);
+            log.error("Erro no reabastecimento do pool", e);
         }
     }
 
@@ -211,9 +194,8 @@ public class DilithiumKeyPoolService {
             KeyPair keyPair = keyPool.poll(100, TimeUnit.MILLISECONDS);
             if (keyPair != null) {
                 activeKeys.decrementAndGet();
-                logger.debug("Chave obtida do pool (Restantes: {})", activeKeys.get());
+                log.debug("Chave obtida do pool (Restantes: {})", activeKeys.get());
 
-                // Agenda reabastecimento se necessário
                 if (activeKeys.get() < minPoolSize) {
                     scheduler.submit(this::replenishKeyPool);
                 }
@@ -224,7 +206,7 @@ public class DilithiumKeyPoolService {
             Thread.currentThread().interrupt();
         }
 
-        logger.debug("Pool vazio, usando chave primária");
+        log.debug("Pool vazio, usando chave primária");
         return primaryKeyPair;
     }
 
@@ -266,18 +248,20 @@ public class DilithiumKeyPoolService {
     }
 
     public PoolStatistics getStatistics() {
-        return PoolStatistics.builder()
-                .poolSize(poolSize)
-                .activeKeys(activeKeys.get())
-                .availableKeys(keyPool.size())
-                .cacheEnabled(cacheEnabled)
-                .precomputeEnabled(precomputeKeys)
-                .build();
+        PoolStatistics stats = new PoolStatistics();
+        stats.setCurrentSize(activeKeys.get());
+        stats.setMaxSize(poolSize);
+        stats.setMinSize(minPoolSize);
+        stats.setTotalGenerated(0);
+        stats.setTotalReused(0);
+        stats.setAverageGenerationTime(0.0);
+        stats.setLastRefillTime(Instant.now());
+        return stats;
     }
 
     @PreDestroy
     public void shutdown() {
-        logger.info("Encerrando Dilithium Key Pool Service...");
+        log.info("Encerrando Dilithium Key Pool Service...");
         scheduler.shutdown();
         keyGenerator.shutdown();
 
@@ -293,30 +277,38 @@ public class DilithiumKeyPoolService {
         }
 
         keyPool.clear();
-        logger.info("Dilithium Key Pool Service encerrado");
+        log.info("Dilithium Key Pool Service encerrado");
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class PoolStatistics {
-        private int poolSize;
-        private int activeKeys;
-        private int availableKeys;
-        private boolean cacheEnabled;
-        private boolean precomputeEnabled;
-            
-        public static PoolStatistics builder() {
-            return new PoolStatistics();
-        }
+        private int currentSize;
+        private int maxSize;
+        private int minSize;
+        private long totalGenerated;
+        private long totalReused;
+        private double averageGenerationTime;
+        private Instant lastRefillTime;
         
-        public PoolStatistics currentSize(int val) { this.currentSize = val; return this; }
-        public PoolStatistics maxSize(int val) { this.maxSize = val; return this; }
-        public PoolStatistics minSize(int val) { this.minSize = val; return this; }
-        public PoolStatistics totalGenerated(long val) { this.totalGenerated = val; return this; }
-        public PoolStatistics totalReused(long val) { this.totalReused = val; return this; }
-        public PoolStatistics averageGenerationTime(double val) { this.averageGenerationTime = val; return this; }
-        public PoolStatistics lastRefillTime(java.time.Instant val) { this.lastRefillTime = val; return this; }
-        public PoolStatistics build() { return this; }
+        // Getters e Setters
+        public int getCurrentSize() { return currentSize; }
+        public void setCurrentSize(int currentSize) { this.currentSize = currentSize; }
+        
+        public int getMaxSize() { return maxSize; }
+        public void setMaxSize(int maxSize) { this.maxSize = maxSize; }
+        
+        public int getMinSize() { return minSize; }
+        public void setMinSize(int minSize) { this.minSize = minSize; }
+        
+        public long getTotalGenerated() { return totalGenerated; }
+        public void setTotalGenerated(long totalGenerated) { this.totalGenerated = totalGenerated; }
+        
+        public long getTotalReused() { return totalReused; }
+        public void setTotalReused(long totalReused) { this.totalReused = totalReused; }
+        
+        public double getAverageGenerationTime() { return averageGenerationTime; }
+        public void setAverageGenerationTime(double averageGenerationTime) { this.averageGenerationTime = averageGenerationTime; }
+        
+        public Instant getLastRefillTime() { return lastRefillTime; }
+        public void setLastRefillTime(Instant lastRefillTime) { this.lastRefillTime = lastRefillTime; }
     }
 }
-
