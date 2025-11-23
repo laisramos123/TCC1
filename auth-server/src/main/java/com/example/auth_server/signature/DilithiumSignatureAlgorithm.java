@@ -1,14 +1,15 @@
 package com.example.auth_server.signature;
 
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.springframework.stereotype.Component;
 
 import java.security.*;
 
-@Slf4j
 @Component("dilithiumSignature")
 public class DilithiumSignatureAlgorithm implements SignatureAlgorithm {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DilithiumSignatureAlgorithm.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DilithiumSignatureAlgorithm.class);
+
 
     private KeyPair keyPair;
     private final SignatureMetrics metrics = new SignatureMetrics();
@@ -86,3 +87,5 @@ public class DilithiumSignatureAlgorithm implements SignatureAlgorithm {
         return metrics;
     }
 }
+
+

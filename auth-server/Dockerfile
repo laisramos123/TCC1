@@ -1,18 +1,6 @@
 FROM eclipse-temurin:21-jdk-alpine
-
 RUN apk add --no-cache curl
-
 WORKDIR /app
 COPY target/auth-server-0.0.1-SNAPSHOT.jar app.jar
-RUN mkdir -p /app/logs /app/data 
-
-ENV SPRING_PROFILES_ACTIVE=docker
-ENV DILITHIUM_SECURITY_LEVEL=3
-ENV JAVA_OPTS="-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom"
-
-EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
-
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+EXPOSE 8080 9080
+ENTRYPOINT ["java", "-jar", "app.jar"]

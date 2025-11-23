@@ -2,26 +2,24 @@ package com.example.auth_server.dto;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConsentListResponse {
-    @JsonProperty("data")
-    private List<ConsentResponse.Data> data;
-
-    @JsonProperty("links")
-    private ConsentResponse.Links links;
-
-    @JsonProperty("meta")
-    private ConsentResponse.Meta meta;
+    private List<Object> data;
+    private Object links;
+    private Meta meta;
+    
+    public static class Meta {
+        private int totalRecords;
+        private int totalPages;
+        
+        public static Meta builder() { return new Meta(); }
+        public Meta totalRecords(int val) { this.totalRecords = val; return this; }
+        public Meta totalPages(int val) { this.totalPages = val; return this; }
+        public Meta build() { return this; }
+    }
+    
+    public static ConsentListResponse builder() { return new ConsentListResponse(); }
+    public ConsentListResponse data(List<Object> val) { this.data = val; return this; }
+    public ConsentListResponse links(Object val) { this.links = val; return this; }
+    public ConsentListResponse meta(Meta val) { this.meta = val; return this; }
+    public ConsentListResponse build() { return this; }
 }

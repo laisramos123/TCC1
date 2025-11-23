@@ -1,5 +1,14 @@
 package com.example.auth_server.dilithium;
 
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
+
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +27,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
+@Slf4j
 public class DilithiumKeyPoolService {
 
     private static final Logger logger = LoggerFactory.getLogger(DilithiumKeyPoolService.class);
@@ -294,5 +304,19 @@ public class DilithiumKeyPoolService {
         private int availableKeys;
         private boolean cacheEnabled;
         private boolean precomputeEnabled;
+            
+        public static PoolStatistics builder() {
+            return new PoolStatistics();
+        }
+        
+        public PoolStatistics currentSize(int val) { this.currentSize = val; return this; }
+        public PoolStatistics maxSize(int val) { this.maxSize = val; return this; }
+        public PoolStatistics minSize(int val) { this.minSize = val; return this; }
+        public PoolStatistics totalGenerated(long val) { this.totalGenerated = val; return this; }
+        public PoolStatistics totalReused(long val) { this.totalReused = val; return this; }
+        public PoolStatistics averageGenerationTime(double val) { this.averageGenerationTime = val; return this; }
+        public PoolStatistics lastRefillTime(java.time.Instant val) { this.lastRefillTime = val; return this; }
+        public PoolStatistics build() { return this; }
     }
 }
+

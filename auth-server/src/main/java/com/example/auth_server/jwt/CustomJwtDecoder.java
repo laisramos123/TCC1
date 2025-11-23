@@ -2,7 +2,6 @@ package com.example.auth_server.jwt;
 
 import com.example.auth_server.signature.SignatureAlgorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -12,8 +11,10 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 
-@Slf4j
 public class CustomJwtDecoder implements JwtDecoder {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomJwtDecoder.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomJwtDecoder.class);
+
 
     private final SignatureAlgorithm signatureAlgorithm;
     private final ObjectMapper objectMapper;
@@ -89,3 +90,6 @@ public class CustomJwtDecoder implements JwtDecoder {
         return Base64.getUrlDecoder().decode(data);
     }
 }
+
+
+

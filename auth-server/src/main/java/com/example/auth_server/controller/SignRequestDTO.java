@@ -1,14 +1,8 @@
 package com.example.auth_server.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class SignRequestDTO {
     private String data;
+    
+    public String getData() { return data; }
+    public void setData(String data) { this.data = data; }
 }
