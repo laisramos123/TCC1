@@ -1,14 +1,15 @@
 spring:
   application:
     name: auth-server
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration
 
   sql:
     init:
-      mode: always
+      mode: never
       platform: postgresql
-      schema-locations: classpath:schema.sql
-      data-locations: classpath:data.sql
-      continue-on-error: false
+      enabled: false
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/authdb?reWriteBatchedInserts=true&stringtype=unspecified}
@@ -25,7 +26,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     defer-datasource-initialization: false
@@ -152,7 +153,6 @@ logging:
     org.hibernate.type.descriptor.sql: WARN
     com.zaxxer.hikari: INFO
     org.springframework.cache: DEBUG
-    org.springframework.sql.init: DEBUG
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
   file:
