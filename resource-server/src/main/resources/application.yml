@@ -110,8 +110,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://auth-server:8080
-          jwk-set-uri: http://auth-server:8080/.well-known/jwks.json
+          issuer-uri: http://localhost:8080
+          jwk-set-uri: http://localhost:8080/.well-known/jwks.json
 
 open-banking:
   resource-server:
@@ -119,7 +119,7 @@ open-banking:
 
   consent:
     validation:
-      auth-server-url: http://auth-server:8080
+      auth-server-url: http://localhost:8080
 
 server:
   ssl:

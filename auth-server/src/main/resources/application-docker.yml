@@ -74,7 +74,7 @@ spring:
   security:
     oauth2:
       authorization-server:
-        issuer: ${JWT_ISSUER:http://auth-server:8080}
+        issuer: ${JWT_ISSUER:http://localhost:8080}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -109,7 +109,7 @@ dilithium:
 jwt:
   signature:
     algorithm: ${JWT_SIGNATURE_ALGORITHM:DILITHIUM}
-    issuer: ${JWT_ISSUER:http://auth-server:8080}
+    issuer: ${JWT_ISSUER:http://localhost:8080}
 
 cors:
   allowed:

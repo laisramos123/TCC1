@@ -11,7 +11,7 @@ spring:
 jwt:
   signature:
     algorithm: DILITHIUM
-    issuer: https://auth-server-dilithium:9080
+    issuer: https://localhost:9080
 
 logging:
   pattern:

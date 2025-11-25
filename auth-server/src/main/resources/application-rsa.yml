@@ -11,7 +11,7 @@ spring:
 jwt:
   signature:
     algorithm: RSA
-    issuer: https://auth-server-rsa:8080
+    issuer: https://localhost:8080
 
 logging:
   pattern:
