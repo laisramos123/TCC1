@@ -29,17 +29,15 @@ public class DataSourceConfig {
         config.setUsername(username);
         config.setPassword(password);
         config.setDriverClassName("org.postgresql.Driver");
-        
-        // CRÍTICO: Desabilitar autoCommit
+
         config.setAutoCommit(false);
-        
-        // Outras configurações do HikariCP
+
         config.setMaximumPoolSize(20);
         config.setMinimumIdle(10);
         config.setConnectionTimeout(30000);
         config.setIdleTimeout(600000);
         config.setMaxLifetime(1800000);
-        
+
         return new HikariDataSource(config);
     }
 }

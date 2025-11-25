@@ -15,10 +15,10 @@ import java.util.UUID;
 @Service
 public class ConsentService {
 
-        @Value("${tpp.bank.authorization-server}")
-        private String authorizationServer;
+        @Value("${tpp.bank.authorization-server-internal:${tpp.bank.authorization-server}}")
+        private String authorizationServerInternal;
 
-        private final RestTemplate restTemplate; // Agora usa mTLS automaticamente
+        private final RestTemplate restTemplate;
 
         public ConsentService(@Qualifier("mtlsRestTemplate") RestTemplate restTemplate) {
                 this.restTemplate = restTemplate;
@@ -26,7 +26,7 @@ public class ConsentService {
 
         public ConsentResponse createConsent(String cpf, List<String> permissions) {
 
-                String url = authorizationServer + "/open-banking/consents/v2/consents";
+                String url = authorizationServerInternal + "/open-banking/consents/v2/consents";
 
                 ConsentRequest request = ConsentRequest.builder()
                                 .data(ConsentRequest.Data.builder()
@@ -64,7 +64,8 @@ public class ConsentService {
         }
 
         public ConsentResponse getConsent(String consentId) {
-                String url = authorizationServer + "/open-banking/consents/v2/consents/" + consentId;
+
+                String url = authorizationServerInternal + "/open-banking/consents/v2/consents/" + consentId;
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.set("x-fapi-interaction-id", UUID.randomUUID().toString());

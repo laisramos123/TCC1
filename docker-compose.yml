@@ -235,8 +235,8 @@ services:
       TPP_CLIENT_ID: oauth-client
       TPP_CLIENT_SECRET: ${OAUTH_SECRET:-oauth-client-secret}
       TPP_REDIRECT_URI: http://localhost:8081/callback
-      TPP_BANK_AUTHORIZATION_SERVER: http://localhost:8080
-      TPP_BANK_RESOURCE_SERVER: http://localhost:8082
+      TPP_BANK_AUTHORIZATION_SERVER: http://auth-server:8080
+      TPP_BANK_RESOURCE_SERVER: http://resource-server:8082
       
        
       SERVER_SERVLET_SESSION_TIMEOUT: 30m

@@ -5,7 +5,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -16,13 +15,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         if ("admin".equals(username)) {
             return User.builder()
                     .username("admin")
-                    .password("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
+                    // ✅ REMOVIDO O PREFIXO {bcrypt}
+                    .password("$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
                     .authorities("ROLE_ADMIN")
                     .build();
         } else if ("user".equals(username)) {
             return User.builder()
                     .username("user")
-                    .password("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
+                    // ✅ REMOVIDO O PREFIXO {bcrypt}
+                    .password("$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
                     .authorities("ROLE_USER")
                     .build();
         }

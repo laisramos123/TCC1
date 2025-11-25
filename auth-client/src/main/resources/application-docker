@@ -16,10 +16,12 @@ spring:
             scope: openid,accounts,transactions,credit-cards-accounts
         provider:
           tpp-client:
-            authorization-uri: http://localhost:8080/oauth2/authorize  # ✅ Navegador
-            token-uri: http://auth-server:8080/oauth2/token           # 🔄 CORRIGIR: Container → Container
-            user-info-uri: http://auth-server:8080/userinfo           # 🔄 CORRIGIR: Container → Container
-            jwk-set-uri: http://auth-server:8080/.well-known/jwks.json # 🔄 CORRIGIR: Container → Container
+            # ✅ URLs para o NAVEGADOR (não use nomes Docker aqui!)
+            authorization-uri: http://localhost:8080/oauth2/authorize
+            # ✅ URLs para comunicação CONTAINER→CONTAINER
+            token-uri: http://auth-server:8080/oauth2/token
+            user-info-uri: http://auth-server:8080/userinfo
+            jwk-set-uri: http://auth-server:8080/.well-known/jwks.json
 
 server:
   port: 8081
@@ -31,11 +33,14 @@ tpp:
   client-secret: oauth-client-secret
   redirect-uri: http://localhost:8081/callback
   bank:
-    authorization-server: http://auth-server:8080   
-    resource-server: http://resource-server:8082   
+    # ✅ URL para o NAVEGADOR redirecionar (authorization)
+    authorization-server: http://localhost:8080
+    # ✅ URL para comunicação CONTAINER→CONTAINER (APIs)
+    authorization-server-internal: http://auth-server:8080
+    resource-server: http://resource-server:8082
 
 authorization-server:
-  base-url: http://localhost:8080   
+  base-url: http://localhost:8080
 
 logging:
   level:

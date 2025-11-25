@@ -13,10 +13,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/consent/**", "/callback", "/error", "/accounts/**").permitAll()
-                        .anyRequest().authenticated())
-                .csrf(csrf -> csrf.disable());
+                // ❌ DESABILITAR CSRF COMPLETAMENTE (desenvolvimento)
+                .csrf(csrf -> csrf.disable())
+
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(
+                                "/",
+                                "/consent/**",
+                                "/callback",
+                                "/authorized",
+                                "/accounts",
+                                "/error",
+                                "/actuator/**",
+                                "/webjars/**",
+                                "/css/**",
+                                "/js/**",
+                                "/favicon.ico")
+                        .permitAll()
+                        .anyRequest().authenticated());
 
         return http.build();
     }
