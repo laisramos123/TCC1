@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoria TCC - 25/11/2025 12:43:27</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 { color: #666; font-size: 0.9em; margin-bottom: 10px; }
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-card.success .number { color: #28a745; }
+        .stat-card.error .number { color: #dc3545; }
+        .stat-card.warning .number { color: #ffc107; }
+        .stat-card.info .number { color: #667eea; }
+        .results {
+            padding: 30px;
+        }
+        .category {
+            margin-bottom: 30px;
+        }
+        .category h2 {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+        }
+        tr:hover { background: #f8f9fa; }
+        .status-ok { color: #28a745; font-weight: bold; }
+        .status-error { color: #dc3545; font-weight: bold; }
+        .status-warning { color: #ffc107; font-weight: bold; }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Auditoria Completa - TCC</h1>
+            <p>Implementação de Criptografia Pós-Quântica em Open Finance Brasil</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">25/11/2025 12:43:27</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card info">
+                <h3>Total de Verificações</h3>
+                <div class="number">0</div>
+            </div>
+            <div class="stat-card success">
+                <h3>Aprovadas</h3>
+                <div class="number">0</div>
+            </div>
+            <div class="stat-card error">
+                <h3>Falhas</h3>
+                <div class="number">0</div>
+            </div>
+            <div class="stat-card warning">
+                <h3>Avisos</h3>
+                <div class="number">0</div>
+            </div>
+        </div>
+        
+        <div style="padding: 0 30px;">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: %">%</div>
+            </div>
+        </div>
+        
+        <div class="results">            <div class="category">
+                <h2>Banco de Dados</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>PostgreSQL - Criar Databases</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">init-scripts/01-create-databases.sql</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>PostgreSQL - Init Schema</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">init-scripts/02-init-schema.sql</td>
+                            <td class="status-warning">⚠️ AVISO</td>
+                            <td>Não</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Código-fonte</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>Auth Server - src/main/java</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/src/main/java</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - src/main/java</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/src/main/java</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - src/main/java</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/src/main/java</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Docker</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>Docker Compose - Configuração Principal</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">docker-compose.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Docker Compose - Serviço Prometheus</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">docker-compose.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Docker Compose - Serviço Grafana</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">docker-compose.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Auth Server - Dockerfile</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/Dockerfile</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - Dockerfile</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/Dockerfile</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - Dockerfile</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/Dockerfile</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Estrutura</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>Auth Server - Diretório Principal</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - Diretório Principal</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - Diretório Principal</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Monitoring - Diretório Principal</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">monitoring</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Prometheus - Configuração</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">monitoring/prometheus</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Grafana - Configuração</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">monitoring/grafana</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>JMeter - Testes</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">jmeter</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Init Scripts - PostgreSQL</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">init-scripts</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Maven</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>Auth Server - pom.xml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Server - Spring Boot Starter</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Server - Bouncy Castle (Dilithium)</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Server - Micrometer Prometheus</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - pom.xml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - Spring Security OAuth2</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - Micrometer Prometheus</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - pom.xml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - Spring Boot Web</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - Micrometer Prometheus</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/pom.xml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Monitoramento</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>Prometheus - Configuração Principal</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">monitoring/prometheus/prometheus.yml</td>
+                            <td class="status-warning">⚠️ AVISO</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Grafana - Datasource Prometheus</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">monitoring/grafana/provisioning/datasources/prometheus.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Grafana - Dashboard Provider</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">monitoring/grafana/provisioning/dashboards/dashboard-provider.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Grafana - Dashboard Principal</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">monitoring/grafana/dashboards/open-finance-pqc-dashboard.json</td>
+                            <td class="status-warning">⚠️ AVISO</td>
+                            <td>Não</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Scripts</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>Build Robusto - Script de Build</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">build-robusto.bat</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Demonstração - Script de Demo</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">demonstracao.bat</td>
+                            <td class="status-warning">⚠️ AVISO</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>JMeter - Script de Testes</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">run-jmeter-tests.ps1</td>
+                            <td class="status-warning">⚠️ AVISO</td>
+                            <td>Não</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Spring Boot</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>Auth Server - application.yml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/src/main/resources/application.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Server - application-docker.yml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/src/main/resources/application-docker.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Server - Management Endpoints</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/src/main/resources/application-docker.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Auth Server - Prometheus Endpoint</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-server/src/main/resources/application-docker.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - application.yml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/src/main/resources/application.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - application-docker.yml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/src/main/resources/application-docker.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Resource Server - Management Endpoints</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">resource-server/src/main/resources/application-docker.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - application.yml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/src/main/resources/application.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - application-docker.yml</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/src/main/resources/application-docker.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Sim</td>
+                        </tr>                        <tr>
+                            <td>Auth Client - Management Endpoints</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">auth-client/src/main/resources/application-docker.yml</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>            <div class="category">
+                <h2>Testes</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Item</th>
+                            <th style="width: 40%">Caminho</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Crítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>                        <tr>
+                            <td>JMeter - Plano de Teste OAuth2</td>
+                            <td style="font-family: monospace; font-size: 0.9em;">jmeter/oauth2-complete-flow-test.jmx</td>
+                            <td class="status-ok">✅ OK</td>
+                            <td>Não</td>
+                        </tr>                    </tbody>
+                </table>
+            </div>        </div>
+        
+        <div class="footer">
+            <p><strong>Projeto:</strong> C:\Users\laisr\IdeaProjects\TCC1</p>
+            <p><strong>Gerado por:</strong> Script de Auditoria Automatizado</p>
+        </div>
+    </div>
+</body>
+</html>
