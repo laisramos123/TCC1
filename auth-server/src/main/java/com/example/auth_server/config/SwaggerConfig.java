@@ -50,7 +50,7 @@ public class SwaggerConfig {
                 return Arrays.asList(
                                 new Server().url("http://localhost:8080").description("Desenvolvimento - RSA"),
                                 new Server().url("http://localhost:9080").description("Desenvolvimento - Dilithium"),
-                                new Server().url("http://auth-server:8080").description("Docker - Interno"));
+                                new Server().url("http://localhost:8080").description("Docker - Interno"));
         }
 
         private SecurityScheme createOAuth2Scheme() {
