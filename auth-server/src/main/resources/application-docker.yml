@@ -16,6 +16,7 @@ spring:
 
     hikari:
       maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:20}
+
       minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:10}
       connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
       idle-timeout: ${SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT:600000}
@@ -129,6 +130,8 @@ management:
   health:
     redis:
       enabled: true
+    dilithium:
+      enabled: false
     db:
       enabled: true
   metrics:

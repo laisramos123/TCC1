@@ -1,0 +1,310 @@
+version: '3.8'
+
+x-common-variables: &common-variables
+  TZ: America/Sao_Paulo
+  JAVA_TOOL_OPTIONS: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError
+
+x-healthcheck-config: &healthcheck-defaults
+  interval: 30s
+  timeout: 15s
+  retries: 5
+
+services:
+   
+  postgres:
+    image: postgres:15-alpine
+    container_name: tcc-postgres
+    restart: unless-stopped
+    environment:
+      <<: *common-variables
+      POSTGRES_USER: ${DB_USER:-tcc_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tcc_password}
+      POSTGRES_DB: tcc_openbanking
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_MAX_CONNECTIONS: 200
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_WORK_MEM: 4MB
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tcc_user} -d tcc_openbanking && psql -U ${DB_USER:-tcc_user} -d authdb -c 'SELECT 1' && psql -U ${DB_USER:-tcc_user} -d resourcedb -c 'SELECT 1'"]
+      start_period: 45s
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.2
+
+   
+  redis:
+    image: redis:7-alpine
+    container_name: tcc-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 20s
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.3
+
+   
+  auth-server:
+    build: 
+      context: ./auth-server
+      dockerfile: Dockerfile
+    image: tcc-auth-server:latest
+    container_name: tcc-auth-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "9080:9080"  
+    environment:
+      <<: *common-variables
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      
+       
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb?reWriteBatchedInserts=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-tcc_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tcc_password}
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 20
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 10
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 30000
+      SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 600000
+      SPRING_DATASOURCE_HIKARI_MAX_LIFETIME: 1800000
+      
+       
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_CACHE_TYPE: redis
+      SPRING_CACHE_REDIS_TIME_TO_LIVE: 3600000
+      
+       
+      JAVA_OPTS: >-
+        -Xmx1024m 
+        -Xms768m 
+        -XX:+UseG1GC 
+        -XX:MaxGCPauseMillis=200
+        -XX:+ParallelRefProcEnabled
+        -XX:+UseStringDeduplication
+        -Djava.security.egd=file:/dev/./urandom
+        -Dspring.jmx.enabled=false
+        -Djdk.tls.ephemeralDHKeySize=2048
+        -Dserver.tomcat.threads.max=200
+        -Dserver.tomcat.threads.min-spare=10
+      
+       
+      DILITHIUM_SECURITY_LEVEL: 3
+      DILITHIUM_KEY_CACHE_ENABLED: true
+      DILITHIUM_PRECOMPUTE_KEYS: true
+      DILITHIUM_KEY_POOL_SIZE: 10
+      JWT_SIGNATURE_ALGORITHM: DILITHIUM
+      
+       
+      JWT_ISSUER: http://auth-server:8080
+      OAUTH_CLIENT_SECRET: ${OAUTH_SECRET:-oauth_secret_2024}
+      
+       
+      CORS_ALLOWED_ORIGINS: http://localhost:8081,http://auth-client:8081
+      
+       
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_EXAMPLE: DEBUG
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./auth-server/target:/app/target:ro
+      - auth_logs:/app/logs
+      - auth_keys:/app/keys
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health && curl -f http://localhost:8080/api/v1/dilithium/info"]
+      start_period: 180s
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.10
+
+  
+  resource-server:
+    build: 
+      context: ./resource-server
+      dockerfile: Dockerfile
+    image: tcc-resource-server:latest
+    container_name: tcc-resource-server
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+      - "9082:9082"   
+    environment:
+      <<: *common-variables
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8082
+      
+      
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/resourcedb?reWriteBatchedInserts=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-tcc_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tcc_password}
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 15
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 5
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 30000
+      
+       
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      
+       
+      JAVA_OPTS: >-
+        -Xmx768m 
+        -Xms512m 
+        -XX:+UseG1GC
+        -Djava.security.egd=file:/dev/./urandom
+        -Dserver.tomcat.threads.max=200
+      
+       
+      AUTHORIZATION_SERVER_BASE_URL: http://auth-server:8080
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth-server:8080
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://auth-server:8080/.well-known/jwks.json
+      
+       
+      JWT_SIGNATURE_ALGORITHM: DILITHIUM
+      
+      
+      CORS_ALLOWED_ORIGINS: http://localhost:8081,http://auth-client:8081
+      
+       
+      CONSENT_VALIDATION_CACHE_TTL: 300000
+      
+       
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_EXAMPLE: DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-server:
+        condition: service_healthy
+    volumes:
+      - ./resource-server/target:/app/target:ro
+      - resource_logs:/app/logs
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health"]
+      start_period: 120s
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.11
+
+   
+  auth-client:
+    build: 
+      context: ./auth-client
+      dockerfile: Dockerfile
+    image: tcc-auth-client:latest
+    container_name: tcc-auth-client
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      <<: *common-variables
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8081
+      
+       
+      JAVA_OPTS: >-
+        -Xmx512m 
+        -Xms256m 
+        -XX:+UseG1GC
+        -Djava.security.egd=file:/dev/./urandom
+      
+       
+      TPP_CLIENT_ID: oauth-client
+      TPP_CLIENT_SECRET: ${OAUTH_SECRET:-oauth-client-secret}
+      TPP_REDIRECT_URI: http://localhost:8081/callback
+      TPP_BANK_AUTHORIZATION_SERVER: http://auth-server:8080
+      TPP_BANK_RESOURCE_SERVER: http://resource-server:8082
+      
+       
+      SERVER_SERVLET_SESSION_TIMEOUT: 30m
+      SERVER_SERVLET_SESSION_COOKIE_SECURE: false
+      SERVER_SERVLET_SESSION_COOKIE_HTTP_ONLY: true
+      
+       
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_EXAMPLE: DEBUG
+    depends_on:
+      auth-server:
+        condition: service_healthy
+      resource-server:
+        condition: service_healthy
+    volumes:
+      - ./auth-client/target:/app/target:ro
+      - client_logs:/app/logs
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      start_period: 90s
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.12
+
+   
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tcc-pgadmin
+    restart: unless-stopped
+    environment:
+      <<: *common-variables
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@tcc.unb.br}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.20
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  auth_logs:
+    driver: local
+  auth_keys:
+    driver: local
+  resource_logs:
+    driver: local
+  client_logs:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  tcc-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1

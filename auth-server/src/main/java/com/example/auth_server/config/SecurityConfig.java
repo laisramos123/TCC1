@@ -104,7 +104,8 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/webjars/**")
+                                "/webjars/**",
+                                "/open-banking/consents/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form

@@ -172,6 +172,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     CONSTRAINT chk_account_type CHECK (account_type IN ('CONTA_CORRENTE', 'CONTA_POUPANCA', 'CONTA_PAGAMENTO'))
 );
 
+
  
 CREATE TABLE IF NOT EXISTS transactions (
     id VARCHAR(255) PRIMARY KEY,
@@ -216,12 +217,15 @@ CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_i
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
 CREATE INDEX IF NOT EXISTS idx_credit_cards_holder_document ON credit_cards(card_holder_document);
 CREATE INDEX IF NOT EXISTS idx_consent_cache_expires ON consent_validations_cache(expires_at);
-
  
+\c authdb;
 COMMENT ON DATABASE authdb IS 'Banco de dados do Authorization Server - OAuth2/OIDC';
-COMMENT ON DATABASE resourcedb IS 'Banco de dados do Resource Server - APIs Open Banking';
 COMMENT ON TABLE consents IS 'Consentimentos OAuth2 com suporte a Dilithium (pós-quântico)';
 COMMENT ON COLUMN consents.business_entity_document IS 'CNPJ da empresa (pessoa jurídica)';
 COMMENT ON COLUMN consents.logged_user_document IS 'CPF do usuário (pessoa física)';
+
+ 
+\c resourcedb;
+COMMENT ON DATABASE resourcedb IS 'Banco de dados do Resource Server - APIs Open Banking';
 
 \echo '✅ Databases and schemas created successfully!'
