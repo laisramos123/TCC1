@@ -46,5 +46,12 @@ management:
         include: health,info,metrics,prometheus
   metrics:
     tags:
-      service: resource-server
+      application: ${spring.application.name}
       environment: docker
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true

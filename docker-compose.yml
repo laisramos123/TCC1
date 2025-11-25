@@ -1,4 +1,3 @@
- 
 x-common-variables: &common-variables
   TZ: America/Sao_Paulo
   JAVA_TOOL_OPTIONS: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError
@@ -20,7 +19,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-tcc_password}
       POSTGRES_DB: tcc_openbanking
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
-      
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_MAX_CONNECTIONS: 200
       POSTGRES_SHARED_BUFFERS: 256MB
@@ -73,7 +71,13 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8080
       
-       
+      # 🆕 ADICIONADO: Configuração Prometheus
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_TAGS_APPLICATION: auth-server
+      MANAGEMENT_METRICS_TAGS_ENVIRONMENT: docker
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb?reWriteBatchedInserts=true
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-tcc_user}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tcc_password}
@@ -83,13 +87,11 @@ services:
       SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 600000
       SPRING_DATASOURCE_HIKARI_MAX_LIFETIME: 1800000
       
-       
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_CACHE_TYPE: redis
       SPRING_CACHE_REDIS_TIME_TO_LIVE: 3600000
       
-       
       JAVA_OPTS: >-
         -Xmx1024m 
         -Xms768m 
@@ -103,21 +105,17 @@ services:
         -Dserver.tomcat.threads.max=200
         -Dserver.tomcat.threads.min-spare=10
       
-       
       DILITHIUM_SECURITY_LEVEL: 3
       DILITHIUM_KEY_CACHE_ENABLED: true
       DILITHIUM_PRECOMPUTE_KEYS: true
       DILITHIUM_KEY_POOL_SIZE: 10
       JWT_SIGNATURE_ALGORITHM: DILITHIUM
       
-       
       JWT_ISSUER: http://localhost:8080
       OAUTH_CLIENT_SECRET: ${OAUTH_SECRET:-oauth_secret_2024}
       
-       
       CORS_ALLOWED_ORIGINS: http://localhost:8081,http://auth-client:8081
       
-       
       LOGGING_LEVEL_ROOT: INFO
       LOGGING_LEVEL_COM_EXAMPLE: DEBUG
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
@@ -154,6 +152,12 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8082
       
+      # 🆕 ADICIONADO: Configuração Prometheus
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_TAGS_APPLICATION: resource-server
+      MANAGEMENT_METRICS_TAGS_ENVIRONMENT: docker
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
       
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/resourcedb?reWriteBatchedInserts=true
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-tcc_user}
@@ -162,11 +166,9 @@ services:
       SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 5
       SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 30000
       
-       
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       
-       
       JAVA_OPTS: >-
         -Xmx768m 
         -Xms512m 
@@ -174,21 +176,16 @@ services:
         -Djava.security.egd=file:/dev/./urandom
         -Dserver.tomcat.threads.max=200
       
-       
       AUTHORIZATION_SERVER_BASE_URL: http://localhost:8080
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://localhost:8080/.well-known/jwks.json
       
-       
       JWT_SIGNATURE_ALGORITHM: DILITHIUM
-      
       
       CORS_ALLOWED_ORIGINS: http://localhost:8081,http://auth-client:8081
       
-       
       CONSENT_VALIDATION_CACHE_TTL: 300000
       
-       
       LOGGING_LEVEL_ROOT: INFO
       LOGGING_LEVEL_COM_EXAMPLE: DEBUG
     depends_on:
@@ -224,26 +221,29 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8081
       
-       
+      # 🆕 ADICIONADO: Configuração Prometheus
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_TAGS_APPLICATION: auth-client
+      MANAGEMENT_METRICS_TAGS_ENVIRONMENT: docker
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      
       JAVA_OPTS: >-
         -Xmx512m 
         -Xms256m 
         -XX:+UseG1GC
         -Djava.security.egd=file:/dev/./urandom
       
-       
       TPP_CLIENT_ID: oauth-client
       TPP_CLIENT_SECRET: ${OAUTH_SECRET:-oauth-client-secret}
       TPP_REDIRECT_URI: http://localhost:8081/callback
       TPP_BANK_AUTHORIZATION_SERVER: http://auth-server:8080
       TPP_BANK_RESOURCE_SERVER: http://resource-server:8082
       
-       
       SERVER_SERVLET_SESSION_TIMEOUT: 30m
       SERVER_SERVLET_SESSION_COOKIE_SECURE: false
       SERVER_SERVLET_SESSION_COOKIE_HTTP_ONLY: true
       
-       
       LOGGING_LEVEL_ROOT: INFO
       LOGGING_LEVEL_COM_EXAMPLE: DEBUG
     depends_on:
@@ -261,6 +261,145 @@ services:
     networks:
       tcc-network:
         ipv4_address: 172.28.1.12
+
+  # ========================================
+  # 🆕 PROMETHEUS - SISTEMA DE MÉTRICAS
+  # ========================================
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: tcc-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--storage.tsdb.retention.size=1GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    environment:
+      <<: *common-variables
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts:/etc/prometheus/alerts:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      auth-server:
+        condition: service_healthy
+      resource-server:
+        condition: service_healthy
+      auth-client:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      start_period: 30s
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.30
+
+  # ========================================
+  # 🆕 GRAFANA - VISUALIZAÇÃO DE MÉTRICAS
+  # ========================================
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: tcc-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *common-variables
+      # Credenciais de acesso
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      
+      # Configurações de segurança
+      GF_SECURITY_ALLOW_EMBEDDING: "false"
+      GF_SECURITY_COOKIE_SECURE: "false"
+      GF_SECURITY_COOKIE_SAMESITE: "lax"
+      
+      # Desabilitar signup
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_ORG_CREATE: "false"
+      
+      # Configurações de servidor
+      GF_SERVER_ROOT_URL: http://localhost:3000
+      GF_SERVER_SERVE_FROM_SUB_PATH: "false"
+      
+      # Plugins
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+      
+      # Analytics (desabilitar para privacidade)
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      
+      # Logging
+      GF_LOG_MODE: console
+      GF_LOG_LEVEL: info
+      
+      # Paths
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_PATHS_DATA: /var/lib/grafana
+      GF_PATHS_LOGS: /var/log/grafana
+      GF_PATHS_PLUGINS: /var/lib/grafana/plugins
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_logs:/var/log/grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      start_period: 45s
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.31
+
+  # ========================================
+  # 🆕 NODE EXPORTER (OPCIONAL - Métricas do Host)
+  # ========================================
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: tcc-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.32
+
+  # ========================================
+  # 🆕 REDIS EXPORTER (OPCIONAL - Métricas do Redis)
+  # ========================================
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: tcc-redis-exporter
+    restart: unless-stopped
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      tcc-network:
+        ipv4_address: 172.28.1.33
 
    
   pgadmin:
@@ -297,6 +436,13 @@ volumes:
   client_logs:
     driver: local
   pgadmin_data:
+    driver: local
+  # 🆕 NOVOS VOLUMES
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  grafana_logs:
     driver: local
 
 networks:

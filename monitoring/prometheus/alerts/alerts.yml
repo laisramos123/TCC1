@@ -1,0 +1,43 @@
+groups:
+  - name: open_finance_alerts
+    interval: 30s
+    rules:
+      # Alerta: Serviço Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Serviço {{ $labels.job }} está DOWN"
+          description: "O serviço {{ $labels.job }} está indisponível há mais de 1 minuto."
+
+      # Alerta: High Latency
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latência no {{ $labels.job }}"
+          description: "P95 latency é {{ $value }}s no serviço {{ $labels.job }}."
+
+      # Alerta: High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto uso de memória no {{ $labels.job }}"
+          description: "Heap usage é {{ $value | humanizePercentage }} no {{ $labels.job }}."
+
+      # Alerta: High CPU Usage
+      - alert: HighCpuUsage
+        expr: system_cpu_usage > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto uso de CPU no {{ $labels.job }}"
+          description: "CPU usage é {{ $value | humanizePercentage }} no {{ $labels.job }}."

@@ -44,10 +44,7 @@ public class ConsentController {
             session.setAttribute("code_verifier", codeVerifier);
             session.setAttribute("state", state);
 
-            String authUrl = authorizationService.buildAuthorizationUrl(
-                    consent,
-                    codeVerifier,
-                    state);
+            String authUrl = authorizationService.buildAuthorizationUrl(cpf, state, codeVerifier, state);
 
             return new RedirectView(authUrl);
 

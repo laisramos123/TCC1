@@ -119,25 +119,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,cache
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: always
-      show-components: always
-      probes:
-        enabled: true
-  health:
-    redis:
-      enabled: true
-    dilithium:
-      enabled: false
-    db:
-      enabled: true
+        include: health,info,metrics,prometheus
   metrics:
     tags:
       application: ${spring.application.name}
       environment: docker
+  endpoint:
+    health:
+      show-details: always
   prometheus:
     metrics:
       export:

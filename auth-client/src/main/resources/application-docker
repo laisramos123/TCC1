@@ -1,8 +1,6 @@
 spring:
   application:
     name: auth-client
-  profiles:
-    active: docker
 
   security:
     oauth2:
@@ -14,11 +12,10 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:8081/callback
             scope: openid,accounts,transactions,credit-cards-accounts
+
         provider:
           tpp-client:
-            # ✅ URLs para o NAVEGADOR (não use nomes Docker aqui!)
             authorization-uri: http://localhost:8080/oauth2/authorize
-            # ✅ URLs para comunicação CONTAINER→CONTAINER
             token-uri: http://auth-server:8080/oauth2/token
             user-info-uri: http://auth-server:8080/userinfo
             jwk-set-uri: http://auth-server:8080/.well-known/jwks.json
@@ -27,15 +24,20 @@ server:
   port: 8081
   ssl:
     enabled: false
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        secure: false
 
 tpp:
   client-id: oauth-client
   client-secret: oauth-client-secret
   redirect-uri: http://localhost:8081/callback
+
   bank:
-    # ✅ URL para o NAVEGADOR redirecionar (authorization)
     authorization-server: http://localhost:8080
-    # ✅ URL para comunicação CONTAINER→CONTAINER (APIs)
     authorization-server-internal: http://auth-server:8080
     resource-server: http://resource-server:8082
 
@@ -44,6 +46,27 @@ authorization-server:
 
 logging:
   level:
+    root: INFO
     com.example.auth_client: DEBUG
     org.springframework.security.oauth2: DEBUG
     org.springframework.web.client: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: docker
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
