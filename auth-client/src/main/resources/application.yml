@@ -1,6 +1,13 @@
 spring:
   application:
     name: auth-client
+    tpp:
+      bank:
+        authorization-server-internal: ${TPP_BANK_AUTHORIZATION_SERVER_INTERNAL:http://auth-server:8080}
+
+        authorization-server: ${TPP_BANK_AUTHORIZATION_SERVER:http://localhost:8080}
+
+        resource-server: ${TPP_BANK_RESOURCE_SERVER:http://resource-server:8082}
 
   # Spring Security OAuth2 Client Configuration
   security:

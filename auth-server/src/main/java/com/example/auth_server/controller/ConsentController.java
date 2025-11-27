@@ -21,7 +21,7 @@ public class ConsentController {
 
     @PostMapping("/{consentId}/authorize")
     public String authorizeConsent(@PathVariable String consentId) {
-        // Simplificado
+
         return "redirect:/consent/" + consentId + "/success";
     }
 }

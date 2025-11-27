@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.auth_server.dto.ConsentListResponse;
 import com.example.auth_server.dto.ConsentRequest;
 import com.example.auth_server.dto.ConsentResponse;
+import com.example.auth_server.enums.ConsentStatus;
 import com.example.auth_server.service.ConsentService;
 
 import java.util.List;
@@ -58,7 +59,6 @@ public class ConsentApiController {
             @RequestHeader("x-fapi-interaction-id") String interactionId,
             @RequestHeader(value = "x-revoked-by", defaultValue = "TPP") String revokedBy) {
 
-        // Chamada correta com 3 parâmetros
         consentService.revokeConsent(consentId, "TPP_REQUESTED", revokedBy);
 
         return ResponseEntity
@@ -78,7 +78,7 @@ public class ConsentApiController {
         response.setData(consents.stream()
                 .map(ConsentResponse::getData)
                 .collect(Collectors.toList()));
-        
+
         ConsentListResponse.Meta meta = new ConsentListResponse.Meta();
         meta.setTotalRecords(consents.size());
         meta.setTotalPages(1);
@@ -88,5 +88,18 @@ public class ConsentApiController {
                 .ok()
                 .header("x-fapi-interaction-id", interactionId)
                 .body(response);
+    }
+
+    @PatchMapping("/{consentId}/consumed")
+    public ResponseEntity<Void> markAsConsumed(
+            @PathVariable String consentId,
+            @RequestHeader("x-fapi-interaction-id") String interactionId) {
+
+        consentService.updateStatus(consentId, ConsentStatus.CONSUMED);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .header("x-fapi-interaction-id", interactionId)
+                .build();
     }
 }

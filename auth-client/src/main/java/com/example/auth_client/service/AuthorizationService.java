@@ -11,8 +11,6 @@ import java.util.Base64;
 @Service
 public class AuthorizationService {
 
-    // ✅ CRÍTICO: Esta URL será usada para REDIRECIONAR O NAVEGADOR
-    // Deve ser "localhost" porque o navegador não resolve nomes Docker!
     @Value("${tpp.bank.authorization-server}")
     private String authorizationServer;
 
@@ -22,21 +20,12 @@ public class AuthorizationService {
     @Value("${tpp.redirect-uri}")
     private String redirectUri;
 
-    /**
-     * Constrói a URL de autorização OAuth2 para o navegador
-     * 
-     * IMPORTANTE: Esta URL será enviada ao navegador via redirect 302
-     * Por isso DEVE usar "localhost" e NÃO "auth-server"
-     */
     public String buildAuthorizationUrl(String consentId, String state, String codeVerifier, String nonce) {
-        // Gerar code_challenge a partir do code_verifier
+
         String codeChallenge = generateCodeChallenge(codeVerifier);
 
-        // Construir scope com consentId
         String scope = "openid consent:" + consentId + " accounts";
 
-        // ✅ authorizationServer deve ser: http://localhost:8080
-        // ❌ NUNCA deve ser: http://auth-server:8080
         String authUrl = UriComponentsBuilder
                 .fromHttpUrl(authorizationServer + "/oauth2/authorize")
                 .queryParam("response_type", "code")
@@ -56,15 +45,9 @@ public class AuthorizationService {
         System.out.println(authUrl);
         System.out.println("===========================================");
 
-        // ✅ Se aparecer "localhost:8080" → CORRETO
-        // ❌ Se aparecer "auth-server:8080" → ERRADO
-
         return authUrl;
     }
 
-    /**
-     * Gera o code_challenge a partir do code_verifier (PKCE)
-     */
     private String generateCodeChallenge(String codeVerifier) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -75,9 +58,6 @@ public class AuthorizationService {
         }
     }
 
-    /**
-     * Gera um code_verifier aleatório (PKCE)
-     */
     public String generateCodeVerifier() {
         SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[32];
@@ -85,16 +65,10 @@ public class AuthorizationService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    /**
-     * Gera um state aleatório
-     */
     public String generateState() {
         return java.util.UUID.randomUUID().toString();
     }
 
-    /**
-     * Gera um nonce aleatório
-     */
     public String generateNonce() {
         return java.util.UUID.randomUUID().toString();
     }

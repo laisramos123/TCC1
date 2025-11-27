@@ -27,7 +27,6 @@ public class ConsentController {
     @Autowired
     private PkceGenerator pkceGenerator;
 
-    @PostMapping("/initiate")
     public RedirectView initiateConsent(
             @RequestParam String cpf,
             @RequestParam List<String> permissions,
@@ -36,15 +35,22 @@ public class ConsentController {
         try {
 
             ConsentResponse consent = consentService.createConsent(cpf, permissions);
+            String consentId = consent.getData().getConsentId();
 
             String codeVerifier = pkceGenerator.generateCodeVerifier();
             String state = UUID.randomUUID().toString();
+            String nonce = UUID.randomUUID().toString();
 
-            session.setAttribute("consent_id", consent.getData().getConsentId());
+            session.setAttribute("consent_id", consentId);
             session.setAttribute("code_verifier", codeVerifier);
             session.setAttribute("state", state);
+            session.setAttribute("nonce", nonce);
 
-            String authUrl = authorizationService.buildAuthorizationUrl(cpf, state, codeVerifier, state);
+            String authUrl = authorizationService.buildAuthorizationUrl(
+                    consentId,
+                    state,
+                    codeVerifier,
+                    nonce);
 
             return new RedirectView(authUrl);
 

@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -23,18 +24,11 @@ import java.util.UUID;
 @Configuration
 public class RegisteredClientConfig {
 
-        /**
-         * Repository para gerenciar clientes OAuth2
-         */
         @Bean
         public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
                 return new JdbcRegisteredClientRepository(jdbcTemplate);
         }
 
-        /**
-         * Inicializa o OAuth2 Client no banco de dados
-         * Executado automaticamente na inicialização da aplicação
-         */
         @Bean
         public CommandLineRunner initializeOAuth2Client(
                         RegisteredClientRepository clientRepository,
@@ -105,5 +99,42 @@ public class RegisteredClientConfig {
                         System.out.println("   Scopes: openid, profile, accounts, consents");
                         System.out.println("   PKCE: obrigatório");
                 };
+        }
+
+        @Bean
+        public RegisteredClient registeredClient() {
+                return RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("oauth-client")
+                                .clientSecret("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                                .redirectUri("http://localhost:8081/callback")
+                                .redirectUri("http://localhost:8081/authorized")
+                                .postLogoutRedirectUri("http://localhost:8081/logged-out")
+
+                                .scopes(scopes -> {
+
+                                        scopes.add(OidcScopes.OPENID);
+                                        scopes.add(OidcScopes.PROFILE);
+
+                                        scopes.add("accounts");
+                                        scopes.add("credit-cards-accounts");
+                                        scopes.add("customers");
+                                        scopes.add("resources");
+                                        scopes.add("payments");
+
+                                })
+
+                                .clientSettings(ClientSettings.builder()
+                                                .requireProofKey(true)
+                                                .requireAuthorizationConsent(false)
+                                                .build())
+                                .tokenSettings(TokenSettings.builder()
+                                                .accessTokenTimeToLive(Duration.ofMinutes(5))
+                                                .refreshTokenTimeToLive(Duration.ofDays(1))
+                                                .reuseRefreshTokens(false)
+                                                .build())
+                                .build();
         }
 }

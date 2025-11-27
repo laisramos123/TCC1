@@ -6,30 +6,21 @@ global:
     cluster: "tcc-open-finance"
     environment: "docker"
 
-# Alertmanager configuration (opcional)
 alerting:
   alertmanagers:
     - static_configs:
         - targets: []
 
-# Regras de alerta (opcional)
 rule_files:
   - "/etc/prometheus/alerts/*.yml"
 
-# Targets para coletar métricas
 scrape_configs:
-  # =====================================
-  # PROMETHEUS SELF-MONITORING
-  # =====================================
   - job_name: "prometheus"
     static_configs:
       - targets: ["localhost:9090"]
         labels:
           service: "prometheus"
 
-  # =====================================
-  # AUTH SERVER - Servidor de Autorização
-  # =====================================
   - job_name: "auth-server"
     metrics_path: "/actuator/prometheus"
     scrape_interval: 10s
@@ -40,9 +31,49 @@ scrape_configs:
           application: "oauth2-authorization"
           component: "backend"
 
-  # =====================================
-  # RESOURCE SERVER - API de Recursos
-  # =====================================
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "dilithium_.*"
+        action: keep
+
+      - source_labels: [__name__]
+        regex: "signature_.*"
+        action: keep
+
+      - source_labels: [__name__]
+        regex: "http_server_requests_.*"
+        action: keep
+
+      - source_labels: [__name__]
+        regex: "jvm_.*"
+        action: keep
+
+      - source_labels: [__name__]
+        regex: "spring_security_.*"
+        action: keep
+
+      - source_labels: [__name__]
+        regex: "hikaricp_.*"
+        action: keep
+
+      - source_labels: [__name__]
+        regex: "cache_.*"
+        action: keep
+
+  - job_name: "auth-server-benchmark"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["auth-server:8080"]
+        labels:
+          service: "auth-server-benchmark"
+          application: "pqc-benchmark"
+          component: "cryptography"
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "(dilithium_.*|signature_.*|rsa_.*)"
+        action: keep
+
   - job_name: "resource-server"
     metrics_path: "/actuator/prometheus"
     scrape_interval: 10s
@@ -53,9 +84,6 @@ scrape_configs:
           application: "open-banking-api"
           component: "backend"
 
-  # =====================================
-  # AUTH CLIENT - TPP Frontend
-  # =====================================
   - job_name: "auth-client"
     metrics_path: "/actuator/prometheus"
     scrape_interval: 10s
@@ -66,9 +94,6 @@ scrape_configs:
           application: "tpp-client"
           component: "frontend"
 
-  # =====================================
-  # NODE EXPORTER - Métricas do Host
-  # =====================================
   - job_name: "node-exporter"
     static_configs:
       - targets: ["node-exporter:9100"]
@@ -76,9 +101,6 @@ scrape_configs:
           service: "node-exporter"
           component: "infrastructure"
 
-  # =====================================
-  # REDIS EXPORTER - Métricas do Redis
-  # =====================================
   - job_name: "redis-exporter"
     static_configs:
       - targets: ["redis-exporter:9121"]

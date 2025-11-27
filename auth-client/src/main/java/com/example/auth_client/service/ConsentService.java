@@ -15,7 +15,7 @@ import java.util.UUID;
 @Service
 public class ConsentService {
 
-        @Value("${tpp.bank.authorization-server-internal:${tpp.bank.authorization-server}}")
+        @Value("${tpp.bank.authorization-server-internal}")
         private String authorizationServerInternal;
 
         private final RestTemplate restTemplate;
@@ -79,5 +79,26 @@ public class ConsentService {
                                 ConsentResponse.class);
 
                 return response.getBody();
+        }
+
+        public void markAsConsumed(String consentId) {
+                try {
+                        String url = authorizationServerInternal +
+                                        "/open-banking/consents/v2/consents/" + consentId + "/consumed";
+
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.set("x-fapi-interaction-id", UUID.randomUUID().toString());
+
+                        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+                        restTemplate.exchange(
+                                        url,
+                                        HttpMethod.PATCH,
+                                        entity,
+                                        Void.class);
+
+                } catch (Exception e) {
+                        throw new RuntimeException("Erro ao marcar consent como consumed: " + e.getMessage());
+                }
         }
 }

@@ -81,13 +81,27 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
     }
 
     private String getRequiredPermission(String uri) {
-        if (uri.contains("/accounts") && !uri.contains("/balances") && !uri.contains("/transactions")) {
-            return "ACCOUNTS_READ";
-        } else if (uri.contains("/balances")) {
+
+        if (uri.matches(".*/accounts/[a-zA-Z0-9_-]+/balances(/.*)?$")) {
             return "ACCOUNTS_BALANCES_READ";
-        } else if (uri.contains("/transactions")) {
+        }
+
+        if (uri.matches(".*/accounts/[a-zA-Z0-9_-]+/transactions(/.*)?$")) {
             return "ACCOUNTS_TRANSACTIONS_READ";
         }
+
+        if (uri.matches(".*/accounts/[a-zA-Z0-9_-]+/?$")) {
+            return "ACCOUNTS_READ";
+        }
+
+        if (uri.matches(".*/accounts/?$")) {
+            return "ACCOUNTS_READ";
+        }
+
+        if (uri.contains("/credit-cards")) {
+            return "CREDIT_CARDS_ACCOUNTS_READ";
+        }
+
         return null;
     }
 

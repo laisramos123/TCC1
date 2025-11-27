@@ -1,6 +1,16 @@
 spring:
   application:
     name: auth-server
+    # open-finance:
+    #   mtls:
+    #     enabled: false
+    tpp:
+      bank:
+        authorization-server-internal: http://auth-server:8080
+
+        authorization-server: http://localhost:8080
+
+        resource-server: http://resource-server:8082
 
   sql:
     init:
@@ -16,7 +26,6 @@ spring:
 
     hikari:
       maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:20}
-
       minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:10}
       connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
       idle-timeout: ${SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT:600000}
@@ -109,6 +118,7 @@ dilithium:
 jwt:
   signature:
     algorithm: ${JWT_SIGNATURE_ALGORITHM:DILITHIUM}
+    # ✅ IMPORTANTE: Mesmo issuer para consistência
     issuer: ${JWT_ISSUER:http://localhost:8080}
 
 cors:

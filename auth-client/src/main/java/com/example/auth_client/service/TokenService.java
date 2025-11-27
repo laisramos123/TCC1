@@ -21,7 +21,7 @@ public class TokenService {
     @Value("${tpp.redirect-uri}")
     private String redirectUri;
 
-    @Value("${tpp.bank.authorization-server}")
+    @Value("${tpp.bank.authorization-server-internal}")
     private String authorizationServer;
 
     private final RestTemplate restTemplate; // mTLS

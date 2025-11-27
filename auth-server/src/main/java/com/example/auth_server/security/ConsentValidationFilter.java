@@ -29,15 +29,17 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
 
         String scope = request.getParameter("scope");
 
-        if (scope != null && !scope.isEmpty()) {
+        if (scope != null && scope.contains("consent:")) {
             try {
+
+                String consentId = extractConsentId(scope);
 
                 consentProvider.validateConsentBeforeAuthorization(scope);
 
-                logger.info("Consentimento validado com sucesso para scope: " + scope);
+                logger.info(" Consent validado: {}");
 
             } catch (Exception e) {
-                logger.error("Erro ao validar consentimento: " + e.getMessage());
+                logger.error(" Erro ao validar consent: {}");
 
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.setContentType("application/json;charset=UTF-8");
@@ -49,5 +51,14 @@ public class ConsentValidationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String extractConsentId(String scope) {
+        for (String s : scope.split(" ")) {
+            if (s.startsWith("consent:")) {
+                return s.substring(8);
+            }
+        }
+        throw new IllegalArgumentException("consent_id não encontrado no scope");
     }
 }
