@@ -27,6 +27,7 @@ public class ConsentController {
     @Autowired
     private PkceGenerator pkceGenerator;
 
+    @PostMapping("/initiate")
     public RedirectView initiateConsent(
             @RequestParam String cpf,
             @RequestParam List<String> permissions,

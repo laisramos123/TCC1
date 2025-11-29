@@ -1,20 +1,24 @@
-
 \c authdb;
 
-
+-- ==========================================
+-- 👥 USERS
+-- ==========================================
 INSERT INTO users (id, username, password, email, cpf, enabled) VALUES 
 ('user-001', 'joao.silva', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'joao@email.com', '12345678901', true),
 ('user-002', 'maria.santos', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'maria@email.com', '10987654321', true),
 ('user-003', 'empresa.admin', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'admin@empresa.com', '99988877766', true)
 ON CONFLICT (id) DO NOTHING;
 
-
+-- ==========================================
+-- 🔐 OAUTH2 CLIENTS (dados iniciais - será gerenciado pelo Spring depois)
+-- ==========================================
 INSERT INTO oauth2_registered_client (id, client_id, client_secret, client_name, authorization_grant_types, redirect_uris, scopes) VALUES
-('client-001', 'oauth-client', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'TCC Open Finance Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client,http://localhost:8081/callback', 'openid,accounts,transactions,credit-cards-accounts'),
-('client-002', 'oauth-client-dilithium', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'TCC Dilithium Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client-dilithium', 'openid,accounts,transactions')
+('client-001', 'oauth-client', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'TCC Open Finance Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client,http://localhost:8081/callback', 'openid,profile,accounts,consent,transactions,credit-cards-accounts')
 ON CONFLICT (id) DO NOTHING;
 
-
+-- ==========================================
+-- ✅ CONSENTS (PLURAL)
+-- ==========================================
 INSERT INTO consents (
     consent_id, 
     client_id, 
@@ -45,7 +49,7 @@ INSERT INTO consents (
 ),
 (
     'urn:tcc:consent:demo-002',
-    'oauth-client-dilithium',
+    'oauth-client',
     'user-002',
     'AWAITING_AUTHORISATION',
     CURRENT_TIMESTAMP,
@@ -73,17 +77,21 @@ INSERT INTO consents (
 )
 ON CONFLICT (consent_id) DO NOTHING;
 
-
+-- ==========================================
+-- 🔒 CONSENT PERMISSIONS
+-- ==========================================
 INSERT INTO consent_permissions (consent_id, permission) VALUES 
-
+-- Permissions for demo-001
 ('urn:tcc:consent:demo-001', 'ACCOUNTS_READ'),
 ('urn:tcc:consent:demo-001', 'ACCOUNTS_BALANCES_READ'),
 ('urn:tcc:consent:demo-001', 'RESOURCES_READ'),
 ('urn:tcc:consent:demo-001', 'CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ'),
 
+-- Permissions for demo-002
 ('urn:tcc:consent:demo-002', 'ACCOUNTS_READ'),
 ('urn:tcc:consent:demo-002', 'CREDIT_CARDS_ACCOUNTS_READ'),
 
+-- Permissions for demo-003
 ('urn:tcc:consent:demo-003', 'ACCOUNTS_READ'),
 ('urn:tcc:consent:demo-003', 'ACCOUNTS_BALANCES_READ'),
 ('urn:tcc:consent:demo-003', 'ACCOUNTS_TRANSACTIONS_READ'),
@@ -91,17 +99,19 @@ INSERT INTO consent_permissions (consent_id, permission) VALUES
 ON CONFLICT (consent_id, permission) DO NOTHING;
 
 -- ==========================================
--- INSERIR CHAVES JWKS
+-- 🔑 JWKS KEYS
 -- ==========================================
 INSERT INTO jwks_keys (kid, algorithm, key_type, public_key, private_key, active) VALUES
 ('rsa-2024', 'RS256', 'RSA', 'MIIBIjANBgkqhkiG9w0B...', 'MIIEvQIBADANBgkqh...', true),
 ('dilithium3-2024', 'DILITHIUM3', 'DILITHIUM', 'MIIGzjCCAVKgAwIBAgI...', 'MIIJQwIBADANBgkqhk...', true)
 ON CONFLICT (kid) DO NOTHING;
 
- 
+-- ==========================================
+-- 💾 RESOURCE SERVER DATA
+-- ==========================================
 \c resourcedb;
 
- 
+-- Accounts
 INSERT INTO accounts (id, account_number, account_type, balance, available_balance, currency, holder_name, holder_document, branch_code, bank_code) VALUES
 ('acc-001', '12345-6', 'CONTA_CORRENTE', 5000.00, 4800.00, 'BRL', 'João Silva', '12345678901', '1234', '001'),
 ('acc-002', '78901-2', 'CONTA_POUPANCA', 15000.50, 15000.50, 'BRL', 'João Silva', '12345678901', '1234', '001'),
@@ -109,7 +119,7 @@ INSERT INTO accounts (id, account_number, account_type, balance, available_balan
 ('acc-004', '11223-3', 'CONTA_PAGAMENTO', 10000.00, 9500.00, 'BRL', 'Empresa Admin', '99988877766', '9999', '001')
 ON CONFLICT (id) DO NOTHING;
 
- 
+-- Transactions
 INSERT INTO transactions (id, account_id, transaction_type, amount, currency, description, transaction_date, balance_after) VALUES
 ('txn-001', 'acc-001', 'CREDITO', 1000.00, 'BRL', 'Salário', CURRENT_TIMESTAMP - INTERVAL '5 days', 5000.00),
 ('txn-002', 'acc-001', 'DEBITO', -150.00, 'BRL', 'Supermercado', CURRENT_TIMESTAMP - INTERVAL '3 days', 4850.00),
@@ -118,13 +128,16 @@ INSERT INTO transactions (id, account_id, transaction_type, amount, currency, de
 ('txn-005', 'acc-003', 'DEBITO', -200.00, 'BRL', 'Pagamento PIX', CURRENT_TIMESTAMP - INTERVAL '4 days', 2500.75),
 ('txn-006', 'acc-004', 'CREDITO', 5000.00, 'BRL', 'Receita empresa', CURRENT_TIMESTAMP - INTERVAL '7 days', 10000.00)
 ON CONFLICT (id) DO NOTHING;
- 
+
+-- Credit cards
 INSERT INTO credit_cards (id, card_number, card_holder_name, card_holder_document, expiry_date, card_type, credit_limit, available_limit, brand) VALUES
 ('card-001', '**** **** **** 1234', 'João Silva', '12345678901', '2025-12-31', 'CREDITO', 10000.00, 8500.00, 'VISA'),
 ('card-002', '**** **** **** 5678', 'Maria Santos', '10987654321', '2026-06-30', 'CREDITO', 5000.00, 4200.00, 'MASTERCARD'),
-('card-003', '**** **** **** 9012', 'Empresa Admin', '99988877766', '2027-03-31', 'CORPORATIVO', 50000.00, 45000.00, 'AMERICAN EXPRESS')
+('card-003', '**** **** **** 9012', 'Empresa Admin', '99988877766', '2027-03-31', 'CORPORATIVO', 50000.00, 45000.00', 'AMERICAN EXPRESS')
 ON CONFLICT (id) DO NOTHING;
- 
+
+-- ==========================================
+-- ✅ SUMMARY
 -- ==========================================
 \c authdb;
 \echo ''
@@ -132,7 +145,7 @@ ON CONFLICT (id) DO NOTHING;
 \echo '✅ DATA INITIALIZATION COMPLETE!'
 \echo '========================================='
 \echo 'Users created: 3'
-\echo 'OAuth2 clients created: 2'
+\echo 'OAuth2 clients created: 1'
 \echo 'Consents created: 3'
 \echo 'Consent permissions created: 10'
 \echo 'Accounts created: 4'
@@ -142,5 +155,6 @@ ON CONFLICT (id) DO NOTHING;
 \echo 'Test credentials:'
 \echo '  Username: joao.silva / maria.santos'
 \echo '  Password: password123'
-\echo '  Client: oauth-client'
+\echo '  Client ID: oauth-client'
+\echo '  Scopes: openid,profile,accounts,consent'
 \echo '========================================='

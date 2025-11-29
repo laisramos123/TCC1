@@ -17,10 +17,6 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import java.time.Duration;
 import java.util.UUID;
 
-/**
- * Configuração do OAuth2 Registered Client
- * Garante que o client esteja sempre registrado corretamente no banco
- */
 @Configuration
 public class RegisteredClientConfig {
 
@@ -37,104 +33,75 @@ public class RegisteredClientConfig {
                 return args -> {
                         String clientId = "oauth-client";
 
-                        // Verificar se já existe
                         RegisteredClient existingClient = clientRepository.findByClientId(clientId);
 
                         if (existingClient != null) {
                                 System.out.println("✅ OAuth2 Client já existe: " + clientId);
+                                System.out.println("   Scopes: " + existingClient.getScopes());
                                 return;
                         }
 
-                        // Criar novo client
                         RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
                                         .clientId(clientId)
-                                        .clientSecret("{noop}secret") // {noop} = sem criptografia (dev only)
+                                        .clientSecret("{noop}secret")
                                         .clientName("OAuth Client Application")
 
-                                        // Métodos de autenticação do client
                                         .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                                         .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
 
-                                        // Grant types permitidos
                                         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                         .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 
-                                        // URIs de redirecionamento permitidos
                                         .redirectUri("http://localhost:8081/callback")
                                         .redirectUri("http://localhost:8081/authorized")
 
-                                        // URI de logout
                                         .postLogoutRedirectUri("http://localhost:8081")
 
-                                        // Scopes permitidos
-                                        .scope("openid")
-                                        .scope("profile")
+                                        .scope(OidcScopes.OPENID)
+                                        .scope(OidcScopes.PROFILE)
                                         .scope("accounts")
-                                        .scope("consents")
+                                        .scope("consent")
+                                        .scope("credit-cards-accounts")
+                                        .scope("customers")
+                                        .scope("resources")
+                                        .scope("payments")
 
-                                        // Configurações do cliente
                                         .clientSettings(ClientSettings.builder()
-                                                        .requireProofKey(true) // PKCE obrigatório
-                                                        .requireAuthorizationConsent(false) // Não exige tela de
-                                                                                            // consentimento OAuth2
+                                                        .requireProofKey(true)
+                                                        .requireAuthorizationConsent(false)
                                                         .build())
 
-                                        // Configurações de tokens
                                         .tokenSettings(TokenSettings.builder()
-                                                        .accessTokenTimeToLive(Duration.ofMinutes(5))
-                                                        .refreshTokenTimeToLive(Duration.ofHours(1))
+                                                        .accessTokenTimeToLive(Duration.ofMinutes(30))
+                                                        .refreshTokenTimeToLive(Duration.ofDays(7))
                                                         .authorizationCodeTimeToLive(Duration.ofMinutes(5))
-                                                        .reuseRefreshTokens(true)
+                                                        .reuseRefreshTokens(false)
                                                         .build())
 
                                         .build();
 
-                        // Salvar no banco
                         clientRepository.save(client);
 
-                        System.out.println("✅ OAuth2 Client criado com sucesso: " + clientId);
+                        System.out.println("========================================");
+                        System.out.println("✅ OAuth2 Client criado com sucesso!");
+                        System.out.println("========================================");
+                        System.out.println("   Client ID: " + clientId);
                         System.out.println("   Client Secret: secret");
-                        System.out.println(
-                                        "   Redirect URIs: http://localhost:8081/callback, http://localhost:8081/authorized");
-                        System.out.println("   Scopes: openid, profile, accounts, consents");
+                        System.out.println("   Redirect URIs:");
+                        System.out.println("     - http://localhost:8081/callback");
+                        System.out.println("     - http://localhost:8081/authorized");
+                        System.out.println("   Scopes:");
+                        System.out.println("     - openid");
+                        System.out.println("     - profile");
+                        System.out.println("     - accounts");
+                        System.out.println("     - consent (permite consent:*)");
+                        System.out.println("     - credit-cards-accounts");
+                        System.out.println("     - customers");
+                        System.out.println("     - resources");
+                        System.out.println("     - payments");
                         System.out.println("   PKCE: obrigatório");
+                        System.out.println("========================================");
                 };
         }
 
-        @Bean
-        public RegisteredClient registeredClient() {
-                return RegisteredClient.withId(UUID.randomUUID().toString())
-                                .clientId("oauth-client")
-                                .clientSecret("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
-                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                                .redirectUri("http://localhost:8081/callback")
-                                .redirectUri("http://localhost:8081/authorized")
-                                .postLogoutRedirectUri("http://localhost:8081/logged-out")
-
-                                .scopes(scopes -> {
-
-                                        scopes.add(OidcScopes.OPENID);
-                                        scopes.add(OidcScopes.PROFILE);
-
-                                        scopes.add("accounts");
-                                        scopes.add("credit-cards-accounts");
-                                        scopes.add("customers");
-                                        scopes.add("resources");
-                                        scopes.add("payments");
-
-                                })
-
-                                .clientSettings(ClientSettings.builder()
-                                                .requireProofKey(true)
-                                                .requireAuthorizationConsent(false)
-                                                .build())
-                                .tokenSettings(TokenSettings.builder()
-                                                .accessTokenTimeToLive(Duration.ofMinutes(5))
-                                                .refreshTokenTimeToLive(Duration.ofDays(1))
-                                                .reuseRefreshTokens(false)
-                                                .build())
-                                .build();
-        }
 }

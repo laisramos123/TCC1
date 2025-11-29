@@ -3,103 +3,341 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>TPP - Open Finance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPP - Open Finance Brasil</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
 
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1em;
+        }
+
         .card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 30px;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.6s ease;
         }
 
-        h1 {
-            color: #333;
+        .card h2 {
+            color: #2d3748;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+        .form-group {
+            margin-bottom: 25px;
         }
 
-        .button:hover {
-            background-color: #45a049;
-        }
-
-        .permissions {
-            margin: 20px 0;
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .permissions {
+            margin: 25px 0;
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .permissions>p {
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.1em;
         }
 
         .permission-item {
-            margin: 10px 0;
+            background: white;
+            padding: 16px;
+            margin: 12px 0;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .permission-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .permission-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin-right: 15px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .permission-item label {
+            cursor: pointer;
+            color: #2d3748;
+            font-weight: 500;
+            flex: 1;
+            font-size: 1em;
+        }
+
+        .permission-icon {
+            font-size: 1.3em;
+            margin-right: 10px;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .info-card h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card ol {
+            padding-left: 25px;
+        }
+
+        .info-card li {
+            margin: 12px 0;
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .card,
+            .header,
+            .info-card {
+                padding: 25px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="card">
-        <h1>🏦 TPP - Terceira Parte Provedora</h1>
-        <p>Conecte suas contas bancárias de forma segura usando Open Finance</p>
-    </div>
-
-    <div class="card">
-        <h2>Solicitar Acesso às Contas</h2>
-        <form action="/consent/initiate" method="post">
-            <label>CPF do Titular:</label>
-            <input type="text" name="cpf" placeholder="12345678900" required>
-
-            <div class="permissions">
-                <p><strong>Selecione as permissões:</strong></p>
-
-                <div class="permission-item">
-                    <input type="checkbox" name="permissions" value="ACCOUNTS_READ" checked>
-                    <label>Leitura de contas</label>
-                </div>
-
-                <div class="permission-item">
-                    <input type="checkbox" name="permissions" value="ACCOUNTS_BALANCES_READ" checked>
-                    <label>Leitura de saldos</label>
-                </div>
-
-                <div class="permission-item">
-                    <input type="checkbox" name="permissions" value="ACCOUNTS_TRANSACTIONS_READ" checked>
-                    <label>Leitura de transações</label>
-                </div>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 TPP - Terceira Parte Provedora</h1>
+            <p>Conecte suas contas bancárias de forma segura usando Open Finance Brasil</p>
+            <div class="security-badge">
+                🔒 Protegido com Criptografia Pós-Quântica
             </div>
+        </div>
 
-            <button type="submit" class="button">Conectar Banco</button>
-        </form>
+        <div class="card">
+            <h2>📋 Solicitar Acesso às Contas</h2>
+            <form action="/consent/initiate" method="post">
+                <div class="form-group">
+                    <label for="cpf">CPF do Titular</label>
+                    <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" required>
+                </div>
+
+                <div class="permissions">
+                    <p>🔐 Selecione as permissões que deseja conceder:</p>
+
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm1" name="permissions" value="ACCOUNTS_READ" checked>
+                        <label for="perm1">
+                            <span class="permission-icon">💼</span>
+                            Leitura de contas bancárias
+                        </label>
+                    </div>
+
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm2" name="permissions" value="ACCOUNTS_BALANCES_READ" checked>
+                        <label for="perm2">
+                            <span class="permission-icon">💰</span>
+                            Leitura de saldos disponíveis
+                        </label>
+                    </div>
+
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm3" name="permissions" value="ACCOUNTS_TRANSACTIONS_READ" checked>
+                        <label for="perm3">
+                            <span class="permission-icon">📊</span>
+                            Leitura de histórico de transações
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="button">
+                    🚀 Conectar com Meu Banco
+                </button>
+            </form>
+        </div>
+
+        <div class="info-card">
+            <h3>❓ Como funciona o processo?</h3>
+            <ol>
+                <li>🌐 Você será redirecionado para o ambiente seguro do seu banco</li>
+                <li>🔑 Faça login com suas credenciais bancárias habituais</li>
+                <li>✅ Revise e autorize o compartilhamento dos dados solicitados</li>
+                <li>🎉 Retorne automaticamente para visualizar suas informações</li>
+            </ol>
+            <div class="security-badge">
+                🛡️ Seus dados estão protegidos pelo Open Finance Brasil
+            </div>
+        </div>
     </div>
 
-    <div class="card">
-        <h3>Como funciona?</h3>
-        <ol>
-            <li>Você será redirecionado para o site do seu banco</li>
-            <li>Faça login com suas credenciais bancárias</li>
-            <li>Autorize o compartilhamento de dados</li>
-            <li>Você será trazido de volta para visualizar suas informações</li>
-        </ol>
-    </div>
+    <script>
+        // Máscara para CPF
+        document.getElementById('cpf').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = value;
+            }
+        });
+
+        // Validação do formulário
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const checkboxes = document.querySelectorAll('input[name="permissions"]:checked');
+
+            if (checkboxes.length === 0) {
+                e.preventDefault();
+                alert('⚠️ Por favor, selecione pelo menos uma permissão!');
+                return false;
+            }
+        });
+    </script>
 </body>
 
 </html>
