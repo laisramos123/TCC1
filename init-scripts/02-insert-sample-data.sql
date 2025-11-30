@@ -3,21 +3,23 @@
 -- ==========================================
 -- 👥 USERS
 -- ==========================================
+-- Password for all users: password
+-- BCrypt hash: $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
 INSERT INTO users (id, username, password, email, cpf, enabled) VALUES 
-('user-001', 'joao.silva', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'joao@email.com', '12345678901', true),
-('user-002', 'maria.santos', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'maria@email.com', '10987654321', true),
-('user-003', 'empresa.admin', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'admin@empresa.com', '99988877766', true)
+('user-001', 'joao.silva', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'joao@email.com', '12345678901', true),
+('user-002', 'maria.santos', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'maria@email.com', '10987654321', true),
+('user-003', 'empresa.admin', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'admin@empresa.com', '99988877766', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================
--- 🔐 OAUTH2 CLIENTS (dados iniciais - será gerenciado pelo Spring depois)
+-- 🔐 OAUTH2 CLIENTS
 -- ==========================================
 INSERT INTO oauth2_registered_client (id, client_id, client_secret, client_name, authorization_grant_types, redirect_uris, scopes) VALUES
-('client-001', 'oauth-client', '$2a$10$N4QjwbUmpAQU.S4UMLbqeOITaKEhDEkWJEy7P7p4u2qYzJ.wY6zWe', 'TCC Open Finance Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client,http://localhost:8081/callback', 'openid,profile,accounts,consent,transactions,credit-cards-accounts')
+('client-001', 'oauth-client', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'TCC Open Finance Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client,http://localhost:8081/callback', 'openid,profile,accounts,consent,transactions,credit-cards-accounts')
 ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================
--- ✅ CONSENTS (PLURAL)
+-- ✅ CONSENTS
 -- ==========================================
 INSERT INTO consents (
     consent_id, 
@@ -133,7 +135,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO credit_cards (id, card_number, card_holder_name, card_holder_document, expiry_date, card_type, credit_limit, available_limit, brand) VALUES
 ('card-001', '**** **** **** 1234', 'João Silva', '12345678901', '2025-12-31', 'CREDITO', 10000.00, 8500.00, 'VISA'),
 ('card-002', '**** **** **** 5678', 'Maria Santos', '10987654321', '2026-06-30', 'CREDITO', 5000.00, 4200.00, 'MASTERCARD'),
-('card-003', '**** **** **** 9012', 'Empresa Admin', '99988877766', '2027-03-31', 'CORPORATIVO', 50000.00, 45000.00', 'AMERICAN EXPRESS')
+('card-003', '**** **** **** 9012', 'Empresa Admin', '99988877766', '2027-03-31', 'CORPORATIVO', 50000.00, 45000.00, 'AMERICAN EXPRESS')
 ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================
@@ -153,8 +155,8 @@ ON CONFLICT (id) DO NOTHING;
 \echo 'Credit cards created: 3'
 \echo '========================================='
 \echo 'Test credentials:'
-\echo '  Username: joao.silva / maria.santos'
-\echo '  Password: password123'
+\echo '  Username: joao.silva / maria.santos / empresa.admin'
+\echo '  Password: password'
 \echo '  Client ID: oauth-client'
 \echo '  Scopes: openid,profile,accounts,consent'
 \echo '========================================='
