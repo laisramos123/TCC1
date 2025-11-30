@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -148,11 +149,19 @@ public class SecurityConfig {
         }
 
         @Bean
+        public DaoAuthenticationProvider daoAuthenticationProvider() {
+                DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+                provider.setUserDetailsService(customUserDetailsService);
+                provider.setPasswordEncoder(passwordEncoder());
+                return provider;
+        }
+
+        @Bean
         @Order(2)
         public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .userDetailsService(customUserDetailsService)
-
+                                .authenticationProvider(daoAuthenticationProvider())
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers(
                                                                 "/login",
