@@ -50,6 +50,8 @@ server:
       cookie:
         http-only: true
         secure: false
+        same-site: lax
+        name: AUTH_CLIENT_SESSION
 
 # Resource Server Configuration
 resource-server:

@@ -235,7 +235,7 @@ services:
         -Djava.security.egd=file:/dev/./urandom
       
       TPP_CLIENT_ID: oauth-client
-      TPP_CLIENT_SECRET: ${OAUTH_SECRET:-oauth-client-secret}
+      TPP_CLIENT_SECRET: secret
       TPP_REDIRECT_URI: http://localhost:8081/callback
       TPP_BANK_AUTHORIZATION_SERVER_INTERNAL: http://auth-server:8080
       TPP_BANK_AUTHORIZATION_SERVER: http://localhost:8080
