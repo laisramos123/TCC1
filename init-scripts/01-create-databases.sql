@@ -1,248 +1,196 @@
--- ==========================================
--- 📁 DATABASE CREATION
--- ==========================================
-CREATE DATABASE authdb
-    WITH OWNER = tcc_user
-    ENCODING = 'UTF8'
-    CONNECTION LIMIT = -1;
-
-CREATE DATABASE resourcedb  
-    WITH OWNER = tcc_user
-    ENCODING = 'UTF8'
-    CONNECTION LIMIT = -1;
-
--- ==========================================
--- 🔐 AUTH SERVER SCHEMA (authdb)
--- ==========================================
 \c authdb;
 
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-    id VARCHAR(255) PRIMARY KEY,
-    username VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(150) NOT NULL,
-    cpf VARCHAR(11) UNIQUE NOT NULL,
-    enabled BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- ==========================================
+-- 👥 USERS
+-- ==========================================
+-- Password for all users: password
+-- BCrypt hash: $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
+INSERT INTO users (id, username, password, email, cpf, enabled) VALUES 
+('user-001', 'joao.silva', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'joao@email.com', '12345678901', true),
+('user-002', 'maria.santos', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'maria@email.com', '10987654321', true),
+('user-003', 'empresa.admin', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'admin@empresa.com', '99988877766', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================
--- 🔐 SPRING AUTHORIZATION SERVER TABLES
+-- 🔐 OAUTH2 CLIENTS (CORRIGIDO - TODAS AS COLUNAS OBRIGATÓRIAS)
 -- ==========================================
--- These tables follow the official Spring Authorization Server schema
--- Reference: https://docs.spring.io/spring-authorization-server/reference/guides/how-to-jpa.html
-
-CREATE TABLE IF NOT EXISTS oauth2_registered_client (
-    id VARCHAR(100) NOT NULL,
-    client_id VARCHAR(100) NOT NULL,
-    client_id_issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    client_secret VARCHAR(200) DEFAULT NULL,
-    client_secret_expires_at TIMESTAMP DEFAULT NULL,
-    client_name VARCHAR(200) NOT NULL,
-    client_authentication_methods VARCHAR(1000) NOT NULL,
-    authorization_grant_types VARCHAR(1000) NOT NULL,
-    redirect_uris VARCHAR(1000) DEFAULT NULL,
-    post_logout_redirect_uris VARCHAR(1000) DEFAULT NULL,
-    scopes VARCHAR(1000) NOT NULL,
-    client_settings VARCHAR(2000) NOT NULL,
-    token_settings VARCHAR(2000) NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS oauth2_authorization (
-    id VARCHAR(100) NOT NULL,
-    registered_client_id VARCHAR(100) NOT NULL,
-    principal_name VARCHAR(200) NOT NULL,
-    authorization_grant_type VARCHAR(100) NOT NULL,
-    authorized_scopes VARCHAR(1000) DEFAULT NULL,
-    attributes TEXT DEFAULT NULL,
-    state VARCHAR(500) DEFAULT NULL,
-    authorization_code_value TEXT DEFAULT NULL,
-    authorization_code_issued_at TIMESTAMP DEFAULT NULL,
-    authorization_code_expires_at TIMESTAMP DEFAULT NULL,
-    authorization_code_metadata TEXT DEFAULT NULL,
-    access_token_value TEXT DEFAULT NULL,
-    access_token_issued_at TIMESTAMP DEFAULT NULL,
-    access_token_expires_at TIMESTAMP DEFAULT NULL,
-    access_token_metadata TEXT DEFAULT NULL,
-    access_token_type VARCHAR(100) DEFAULT NULL,
-    access_token_scopes VARCHAR(1000) DEFAULT NULL,
-    oidc_id_token_value TEXT DEFAULT NULL,
-    oidc_id_token_issued_at TIMESTAMP DEFAULT NULL,
-    oidc_id_token_expires_at TIMESTAMP DEFAULT NULL,
-    oidc_id_token_metadata TEXT DEFAULT NULL,
-    refresh_token_value TEXT DEFAULT NULL,
-    refresh_token_issued_at TIMESTAMP DEFAULT NULL,
-    refresh_token_expires_at TIMESTAMP DEFAULT NULL,
-    refresh_token_metadata TEXT DEFAULT NULL,
-    user_code_value TEXT DEFAULT NULL,
-    user_code_issued_at TIMESTAMP DEFAULT NULL,
-    user_code_expires_at TIMESTAMP DEFAULT NULL,
-    user_code_metadata TEXT DEFAULT NULL,
-    device_code_value TEXT DEFAULT NULL,
-    device_code_issued_at TIMESTAMP DEFAULT NULL,
-    device_code_expires_at TIMESTAMP DEFAULT NULL,
-    device_code_metadata TEXT DEFAULT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
-    registered_client_id VARCHAR(100) NOT NULL,
-    principal_name VARCHAR(200) NOT NULL,
-    authorities VARCHAR(1000) NOT NULL,
-    PRIMARY KEY (registered_client_id, principal_name)
-);
+INSERT INTO oauth2_registered_client (
+    id,
+    client_id,
+    client_id_issued_at,
+    client_secret,
+    client_name,
+    client_authentication_methods,
+    authorization_grant_types,
+    redirect_uris,
+    post_logout_redirect_uris,
+    scopes,
+    client_settings,
+    token_settings
+) VALUES (
+    'client-001',
+    'oauth-client',
+    CURRENT_TIMESTAMP,
+    '{noop}secret',
+    'TCC Open Finance Client',
+    'client_secret_basic,client_secret_post',
+    'authorization_code,refresh_token',
+    'http://localhost:8081/callback,http://localhost:8081/authorized',
+    'http://localhost:8081',
+    'openid,profile,accounts,consent,credit-cards-accounts,customers,resources,payments',
+    '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":false,"settings.token.access-token-time-to-live":["java.time.Duration",1800.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",604800.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000]}'
+)
+ON CONFLICT (id) DO UPDATE SET
+    client_secret = EXCLUDED.client_secret,
+    client_authentication_methods = EXCLUDED.client_authentication_methods,
+    authorization_grant_types = EXCLUDED.authorization_grant_types,
+    redirect_uris = EXCLUDED.redirect_uris,
+    post_logout_redirect_uris = EXCLUDED.post_logout_redirect_uris,
+    scopes = EXCLUDED.scopes,
+    client_settings = EXCLUDED.client_settings,
+    token_settings = EXCLUDED.token_settings;
 
 -- ==========================================
--- ✅ CONSENTS TABLE (Open Finance Brasil)
+-- ✅ CONSENTS
 -- ==========================================
-CREATE TABLE IF NOT EXISTS consents (
-    consent_id VARCHAR(255) PRIMARY KEY,
-    client_id VARCHAR(255) NOT NULL,
-    user_id VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    creation_date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status_update_date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expiration_date_time TIMESTAMP NOT NULL,
-    logged_user_document VARCHAR(255), 
-    logged_user_rel VARCHAR(50),
-    business_entity_document VARCHAR(255),
-    business_entity_rel VARCHAR(50),
-    transaction_from_date_time TIMESTAMP,
-    transaction_to_date_time TIMESTAMP,
-    revocation_reason_code VARCHAR(50),
-    revocation_reason_detail TEXT,
-    revoked_by VARCHAR(255),
-    revoked_at TIMESTAMP,
-    authorization_code VARCHAR(255),
-    access_token_hash VARCHAR(255),
-    dilithium_signature TEXT,
-    signature_timestamp TIMESTAMP,
-    signature_algorithm VARCHAR(50) DEFAULT 'DILITHIUM3',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_status CHECK (status IN ('AUTHORISED', 'AWAITING_AUTHORISATION', 'REJECTED', 'REVOKED', 'CONSUMED'))
-);
-
-CREATE TABLE IF NOT EXISTS consent_permissions (
-    id SERIAL PRIMARY KEY,
-    consent_id VARCHAR(255) NOT NULL,
-    permission VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_consent_permissions 
-        FOREIGN KEY (consent_id) 
-        REFERENCES consents(consent_id)
-        ON DELETE CASCADE,
-    CONSTRAINT unique_consent_permission 
-        UNIQUE (consent_id, permission)
-);
-
--- JWKS keys
-CREATE TABLE IF NOT EXISTS jwks_keys (
-    kid VARCHAR(255) PRIMARY KEY,
-    algorithm VARCHAR(50) NOT NULL,
-    key_type VARCHAR(50) NOT NULL,
-    public_key TEXT NOT NULL,
-    private_key TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP,
-    active BOOLEAN DEFAULT TRUE
-);
-
--- ==========================================
--- 📊 INDEXES (authdb)
--- ==========================================
-CREATE INDEX IF NOT EXISTS idx_consents_status ON consents(status);
-CREATE INDEX IF NOT EXISTS idx_consents_user_id ON consents(user_id);
-CREATE INDEX IF NOT EXISTS idx_consents_client_id ON consents(client_id);
-CREATE INDEX IF NOT EXISTS idx_consents_creation ON consents(creation_date_time);
-CREATE INDEX IF NOT EXISTS idx_consents_expiration ON consents(expiration_date_time);
-CREATE INDEX IF NOT EXISTS idx_consent_permissions_consent_id ON consent_permissions(consent_id);
-CREATE INDEX IF NOT EXISTS idx_users_cpf ON users(cpf);
-CREATE INDEX IF NOT EXISTS idx_oauth2_authorization_principal ON oauth2_authorization(principal_name);
-CREATE INDEX IF NOT EXISTS idx_oauth2_authorization_client ON oauth2_authorization(registered_client_id);
+INSERT INTO consents (
+    consent_id, 
+    client_id, 
+    user_id,
+    status,
+    creation_date_time,
+    expiration_date_time,
+    logged_user_document,
+    logged_user_rel,
+    business_entity_document,
+    business_entity_rel,
+    transaction_from_date_time,
+    transaction_to_date_time
+) VALUES 
+(
+    'urn:tcc:consent:demo-001',
+    'oauth-client',
+    'user-001',
+    'AUTHORISED',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP + INTERVAL '365 days',
+    '12345678901',
+    'OWNER',
+    '12345678000190',
+    'REPRESENTATIVE',
+    CURRENT_TIMESTAMP - INTERVAL '30 days',
+    CURRENT_TIMESTAMP + INTERVAL '30 days'
+),
+(
+    'urn:tcc:consent:demo-002',
+    'oauth-client',
+    'user-002',
+    'AWAITING_AUTHORISATION',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP + INTERVAL '90 days',
+    '10987654321',
+    'OWNER',
+    '98765432000187',
+    'OWNER',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP + INTERVAL '90 days'
+),
+(
+    'urn:tcc:consent:demo-003',
+    'oauth-client',
+    'user-003',
+    'AUTHORISED',
+    CURRENT_TIMESTAMP - INTERVAL '10 days',
+    CURRENT_TIMESTAMP + INTERVAL '180 days',
+    '99988877766',
+    'REPRESENTATIVE',
+    '11223344000155',
+    'ADMINISTRATOR',
+    CURRENT_TIMESTAMP - INTERVAL '10 days',
+    CURRENT_TIMESTAMP + INTERVAL '60 days'
+)
+ON CONFLICT (consent_id) DO NOTHING;
 
 -- ==========================================
--- 💾 RESOURCE SERVER SCHEMA (resourcedb)
+-- 🔒 CONSENT PERMISSIONS
+-- ==========================================
+INSERT INTO consent_permissions (consent_id, permission) VALUES 
+-- Permissions for demo-001
+('urn:tcc:consent:demo-001', 'ACCOUNTS_READ'),
+('urn:tcc:consent:demo-001', 'ACCOUNTS_BALANCES_READ'),
+('urn:tcc:consent:demo-001', 'RESOURCES_READ'),
+('urn:tcc:consent:demo-001', 'CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ'),
+
+-- Permissions for demo-002
+('urn:tcc:consent:demo-002', 'ACCOUNTS_READ'),
+('urn:tcc:consent:demo-002', 'CREDIT_CARDS_ACCOUNTS_READ'),
+
+-- Permissions for demo-003
+('urn:tcc:consent:demo-003', 'ACCOUNTS_READ'),
+('urn:tcc:consent:demo-003', 'ACCOUNTS_BALANCES_READ'),
+('urn:tcc:consent:demo-003', 'ACCOUNTS_TRANSACTIONS_READ'),
+('urn:tcc:consent:demo-003', 'CREDIT_CARDS_ACCOUNTS_READ')
+ON CONFLICT (consent_id, permission) DO NOTHING;
+
+-- ==========================================
+-- 🔑 JWKS KEYS
+-- ==========================================
+INSERT INTO jwks_keys (kid, algorithm, key_type, public_key, private_key, active) VALUES
+('rsa-2024', 'RS256', 'RSA', 'MIIBIjANBgkqhkiG9w0B...', 'MIIEvQIBADANBgkqh...', true),
+('dilithium3-2024', 'DILITHIUM3', 'DILITHIUM', 'MIIGzjCCAVKgAwIBAgI...', 'MIIJQwIBADANBgkqhk...', true)
+ON CONFLICT (kid) DO NOTHING;
+
+-- ==========================================
+-- 💾 RESOURCE SERVER DATA
 -- ==========================================
 \c resourcedb;
 
 -- Accounts
-CREATE TABLE IF NOT EXISTS accounts (
-    id VARCHAR(255) PRIMARY KEY,
-    account_number VARCHAR(20) UNIQUE NOT NULL,
-    account_type VARCHAR(50) NOT NULL,
-    balance DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    available_balance DECIMAL(15,2) DEFAULT 0.00,
-    currency VARCHAR(3) DEFAULT 'BRL',
-    holder_name VARCHAR(200) NOT NULL,
-    holder_document VARCHAR(14) NOT NULL,
-    branch_code VARCHAR(10) NOT NULL,
-    bank_code VARCHAR(10) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_account_type CHECK (account_type IN ('CONTA_CORRENTE', 'CONTA_POUPANCA', 'CONTA_PAGAMENTO'))
-);
+INSERT INTO accounts (id, account_number, account_type, balance, available_balance, currency, holder_name, holder_document, branch_code, bank_code) VALUES
+('acc-001', '12345-6', 'CONTA_CORRENTE', 5000.00, 4800.00, 'BRL', 'João Silva', '12345678901', '1234', '001'),
+('acc-002', '78901-2', 'CONTA_POUPANCA', 15000.50, 15000.50, 'BRL', 'João Silva', '12345678901', '1234', '001'),
+('acc-003', '45678-9', 'CONTA_CORRENTE', 2500.75, 2500.75, 'BRL', 'Maria Santos', '10987654321', '5678', '001'),
+('acc-004', '11223-3', 'CONTA_PAGAMENTO', 10000.00, 9500.00, 'BRL', 'Empresa Admin', '99988877766', '9999', '001')
+ON CONFLICT (id) DO NOTHING;
 
 -- Transactions
-CREATE TABLE IF NOT EXISTS transactions (
-    id VARCHAR(255) PRIMARY KEY,
-    account_id VARCHAR(255) NOT NULL,
-    transaction_type VARCHAR(20) NOT NULL,
-    amount DECIMAL(15,2) NOT NULL,
-    currency VARCHAR(3) DEFAULT 'BRL',
-    description VARCHAR(500),
-    transaction_date TIMESTAMP NOT NULL,
-    balance_after DECIMAL(15,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
-);
+INSERT INTO transactions (id, account_id, transaction_type, amount, currency, description, transaction_date, balance_after) VALUES
+('txn-001', 'acc-001', 'CREDITO', 1000.00, 'BRL', 'Salário', CURRENT_TIMESTAMP - INTERVAL '5 days', 5000.00),
+('txn-002', 'acc-001', 'DEBITO', -150.00, 'BRL', 'Supermercado', CURRENT_TIMESTAMP - INTERVAL '3 days', 4850.00),
+('txn-003', 'acc-001', 'DEBITO', -50.00, 'BRL', 'Combustível', CURRENT_TIMESTAMP - INTERVAL '1 day', 4800.00),
+('txn-004', 'acc-002', 'CREDITO', 500.00, 'BRL', 'Transferência recebida', CURRENT_TIMESTAMP - INTERVAL '2 days', 15000.50),
+('txn-005', 'acc-003', 'DEBITO', -200.00, 'BRL', 'Pagamento PIX', CURRENT_TIMESTAMP - INTERVAL '4 days', 2500.75),
+('txn-006', 'acc-004', 'CREDITO', 5000.00, 'BRL', 'Receita empresa', CURRENT_TIMESTAMP - INTERVAL '7 days', 10000.00)
+ON CONFLICT (id) DO NOTHING;
 
 -- Credit cards
-CREATE TABLE IF NOT EXISTS credit_cards (
-    id VARCHAR(255) PRIMARY KEY,
-    card_number VARCHAR(20) NOT NULL,
-    card_holder_name VARCHAR(200) NOT NULL,
-    card_holder_document VARCHAR(14) NOT NULL,
-    expiry_date DATE NOT NULL,
-    card_type VARCHAR(20) NOT NULL,
-    credit_limit DECIMAL(15,2) NOT NULL,
-    available_limit DECIMAL(15,2) NOT NULL,
-    brand VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Consent validation cache
-CREATE TABLE IF NOT EXISTS consent_validations_cache (
-    consent_id VARCHAR(255) PRIMARY KEY,
-    is_valid BOOLEAN NOT NULL,
-    permissions TEXT,
-    validated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL
-);
+INSERT INTO credit_cards (id, card_number, card_holder_name, card_holder_document, expiry_date, card_type, credit_limit, available_limit, brand) VALUES
+('card-001', '**** **** **** 1234', 'João Silva', '12345678901', '2025-12-31', 'CREDITO', 10000.00, 8500.00, 'VISA'),
+('card-002', '**** **** **** 5678', 'Maria Santos', '10987654321', '2026-06-30', 'CREDITO', 5000.00, 4200.00, 'MASTERCARD'),
+('card-003', '**** **** **** 9012', 'Empresa Admin', '99988877766', '2027-03-31', 'CORPORATIVO', 50000.00, 45000.00, 'AMERICAN EXPRESS')
+ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================
--- 📊 INDEXES (resourcedb)
--- ==========================================
-CREATE INDEX IF NOT EXISTS idx_accounts_holder_document ON accounts(holder_document);
-CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
-CREATE INDEX IF NOT EXISTS idx_credit_cards_holder_document ON credit_cards(card_holder_document);
-CREATE INDEX IF NOT EXISTS idx_consent_cache_expires ON consent_validations_cache(expires_at);
-
--- ==========================================
--- 💬 COMMENTS
+-- ✅ SUMMARY
 -- ==========================================
 \c authdb;
-COMMENT ON DATABASE authdb IS 'Banco de dados do Authorization Server - OAuth2/OIDC';
-COMMENT ON TABLE consents IS 'Consentimentos OAuth2 com suporte a Dilithium (pós-quântico)';
-COMMENT ON TABLE oauth2_registered_client IS 'Clientes OAuth2 registrados - Schema do Spring Authorization Server';
-COMMENT ON TABLE oauth2_authorization IS 'Autorizações OAuth2 - Schema do Spring Authorization Server';
-
-\c resourcedb;
-COMMENT ON DATABASE resourcedb IS 'Banco de dados do Resource Server - APIs Open Banking';
-
-\echo '✅ Databases and schemas created successfully!'
+\echo ''
+\echo '========================================='
+\echo '✅ DATA INITIALIZATION COMPLETE!'
+\echo '========================================='
+\echo 'Users created: 3'
+\echo 'OAuth2 clients created: 1'
+\echo 'Consents created: 3'
+\echo 'Consent permissions created: 10'
+\echo 'Accounts created: 4'
+\echo 'Transactions created: 6'
+\echo 'Credit cards created: 3'
+\echo '========================================='
+\echo 'Test credentials:'
+\echo '  Username: joao.silva / maria.santos / empresa.admin'
+\echo '  Password: password'
+\echo '  Client ID: oauth-client'
+\echo '  Client Secret: secret'
+\echo '  Scopes: openid,profile,accounts,consent,...'
+\echo '========================================='

@@ -33,75 +33,98 @@ public class RegisteredClientConfig {
                 return args -> {
                         String clientId = "oauth-client";
 
-                        RegisteredClient existingClient = clientRepository.findByClientId(clientId);
+                        try {
+                                RegisteredClient existingClient = clientRepository.findByClientId(clientId);
 
-                        if (existingClient != null) {
-                                System.out.println("✅ OAuth2 Client já existe: " + clientId);
-                                System.out.println("   Scopes: " + existingClient.getScopes());
-                                return;
+                                if (existingClient != null) {
+                                        System.out.println("========================================");
+                                        System.out.println("✅ OAuth2 Client já existe: " + clientId);
+                                        System.out.println("   ID: " + existingClient.getId());
+                                        System.out.println("   Scopes: " + existingClient.getScopes());
+                                        System.out.println("   Redirect URIs: " + existingClient.getRedirectUris());
+                                        System.out.println("========================================");
+                                        return;
+                                }
+
+                                RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
+                                                .clientId(clientId)
+                                                .clientSecret("{noop}secret") // {noop} para senha em texto plano
+                                                .clientName("OAuth Client Application")
+
+                                                .clientAuthenticationMethod(
+                                                                ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                                .clientAuthenticationMethod(
+                                                                ClientAuthenticationMethod.CLIENT_SECRET_POST)
+
+                                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+
+                                                .redirectUri("http://localhost:8081/callback")
+                                                .redirectUri("http://localhost:8081/authorized")
+
+                                                .postLogoutRedirectUri("http://localhost:8081")
+
+                                                // ✅ SCOPES - incluindo todos necessários para Open Finance
+                                                .scope(OidcScopes.OPENID)
+                                                .scope(OidcScopes.PROFILE)
+                                                .scope("accounts")
+                                                .scope("consent") // Base para consent:* dinâmico
+                                                .scope("credit-cards-accounts")
+                                                .scope("customers")
+                                                .scope("resources")
+                                                .scope("payments")
+                                                .scope("customer") // Base para customer:* dinâmico
+                                                .scope("payment") // Base para payment:* dinâmico
+
+                                                .clientSettings(ClientSettings.builder()
+                                                                .requireProofKey(true) // PKCE obrigatório
+                                                                .requireAuthorizationConsent(false) // Não pedir consent
+                                                                                                    // na UI do AS
+                                                                .build())
+
+                                                .tokenSettings(TokenSettings.builder()
+                                                                .accessTokenTimeToLive(Duration.ofMinutes(30))
+                                                                .refreshTokenTimeToLive(Duration.ofDays(7))
+                                                                .authorizationCodeTimeToLive(Duration.ofMinutes(5))
+                                                                .reuseRefreshTokens(false)
+                                                                .build())
+
+                                                .build();
+
+                                clientRepository.save(client);
+
+                                // Verifica se foi salvo
+                                RegisteredClient saved = clientRepository.findByClientId(clientId);
+                                if (saved != null) {
+                                        System.out.println("========================================");
+                                        System.out.println("✅ OAuth2 Client CRIADO E PERSISTIDO!");
+                                        System.out.println("========================================");
+                                        System.out.println("   Client ID: " + clientId);
+                                        System.out.println("   Client Secret: secret");
+                                        System.out.println("   Redirect URIs:");
+                                        System.out.println("     - http://localhost:8081/callback");
+                                        System.out.println("     - http://localhost:8081/authorized");
+                                        System.out.println("   Scopes:");
+                                        saved.getScopes().forEach(scope -> System.out.println("     - " + scope));
+                                        System.out.println("   PKCE: obrigatório");
+                                        System.out.println("========================================");
+                                } else {
+                                        System.err.println(
+                                                        "❌ ERRO: Cliente foi salvo mas não encontrado na verificação!");
+                                }
+
+                        } catch (Exception e) {
+                                System.err.println("========================================");
+                                System.err.println("❌ ERRO AO CRIAR/VERIFICAR CLIENTE OAUTH2");
+                                System.err.println("========================================");
+                                System.err.println("   Erro: " + e.getMessage());
+                                System.err.println("   Causa: "
+                                                + (e.getCause() != null ? e.getCause().getMessage() : "N/A"));
+                                e.printStackTrace();
+                                System.err.println("========================================");
+                                System.err.println("ℹ️  O cliente pode ser criado via SQL se necessário.");
+                                System.err.println("========================================");
                         }
-
-                        RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
-                                        .clientId(clientId)
-                                        .clientSecret("{noop}secret")
-                                        .clientName("OAuth Client Application")
-
-                                        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                                        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-
-                                        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                                        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-
-                                        .redirectUri("http://localhost:8081/callback")
-                                        .redirectUri("http://localhost:8081/authorized")
-
-                                        .postLogoutRedirectUri("http://localhost:8081")
-
-                                        .scope(OidcScopes.OPENID)
-                                        .scope(OidcScopes.PROFILE)
-                                        .scope("accounts")
-                                        .scope("consent")
-                                        .scope("credit-cards-accounts")
-                                        .scope("customers")
-                                        .scope("resources")
-                                        .scope("payments")
-
-                                        .clientSettings(ClientSettings.builder()
-                                                        .requireProofKey(true)
-                                                        .requireAuthorizationConsent(false)
-                                                        .build())
-
-                                        .tokenSettings(TokenSettings.builder()
-                                                        .accessTokenTimeToLive(Duration.ofMinutes(30))
-                                                        .refreshTokenTimeToLive(Duration.ofDays(7))
-                                                        .authorizationCodeTimeToLive(Duration.ofMinutes(5))
-                                                        .reuseRefreshTokens(false)
-                                                        .build())
-
-                                        .build();
-
-                        clientRepository.save(client);
-
-                        System.out.println("========================================");
-                        System.out.println("✅ OAuth2 Client criado com sucesso!");
-                        System.out.println("========================================");
-                        System.out.println("   Client ID: " + clientId);
-                        System.out.println("   Client Secret: secret");
-                        System.out.println("   Redirect URIs:");
-                        System.out.println("     - http://localhost:8081/callback");
-                        System.out.println("     - http://localhost:8081/authorized");
-                        System.out.println("   Scopes:");
-                        System.out.println("     - openid");
-                        System.out.println("     - profile");
-                        System.out.println("     - accounts");
-                        System.out.println("     - consent (permite consent:*)");
-                        System.out.println("     - credit-cards-accounts");
-                        System.out.println("     - customers");
-                        System.out.println("     - resources");
-                        System.out.println("     - payments");
-                        System.out.println("   PKCE: obrigatório");
-                        System.out.println("========================================");
                 };
         }
-
 }

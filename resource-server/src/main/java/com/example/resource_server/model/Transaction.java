@@ -1,46 +1,78 @@
 package com.example.resource_server.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Transaction {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
+    private String id;
+
+    @Column(name = "transaction_id")
     private String transactionId;
 
-    @Column(nullable = false)
+    @Column(name = "account_id", nullable = false)
     private String accountId;
 
-    @Column(nullable = false)
+    @Column(name = "transaction_type", nullable = false)
+    private String transactionType;
+
+    @Column(name = "type")
     private String type;
 
-    @Column(nullable = false)
+    @Column(name = "amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
-    @Column(nullable = false)
+    @Column(name = "currency")
     private String currency = "BRL";
 
-    @Column(nullable = false)
-    private LocalDateTime transactionDateTime;
-
-    @Column(nullable = false)
+    @Column(name = "description")
     private String description;
 
-    private String counterpartyName;
+    @Column(name = "transaction_date", nullable = false)
+    private LocalDateTime transactionDate;
 
-    @Column(nullable = false)
+    @Column(name = "transaction_date_time")
+    private LocalDateTime transactionDateTime;
+
+    @Column(name = "balance_after", nullable = false, precision = 15, scale = 2)
+    private BigDecimal balanceAfter;
+
+    @Column(name = "status")
     private String status = "COMPLETED";
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        if (transactionDateTime == null) {
-            transactionDateTime = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (id == null) {
+            id = java.util.UUID.randomUUID().toString();
+        }
+        if (transactionId == null) {
+            transactionId = id;
+        }
+        if (transactionDateTime == null && transactionDate != null) {
+            transactionDateTime = transactionDate;
+        }
+        if (type == null && transactionType != null) {
+            type = transactionType;
         }
     }
 }

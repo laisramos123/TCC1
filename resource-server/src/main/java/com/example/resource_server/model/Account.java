@@ -18,34 +18,69 @@ import java.time.LocalDateTime;
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
+    private String id;
+
+    @Column(name = "account_id")
     private String accountId;
 
-    @Column(nullable = false)
+    @Column(name = "user_id")
     private String userId;
 
-    @Column(nullable = false)
+    @Column(name = "account_number", nullable = false)
     private String accountNumber;
 
-    @Column(nullable = false)
+    @Column(name = "account_type", nullable = false)
     private String accountType;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Column(name = "balance", nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
 
-    @Column(nullable = false)
+    @Column(name = "available_balance", precision = 15, scale = 2)
+    private BigDecimal availableBalance;
+
+    @Column(name = "currency")
     private String currency = "BRL";
 
-    @Column(nullable = false)
+    @Column(name = "holder_name", nullable = false)
+    private String holderName;
+
+    @Column(name = "holder_document", nullable = false)
+    private String holderDocument;
+
+    @Column(name = "branch_code", nullable = false)
+    private String branchCode;
+
+    @Column(name = "bank_code", nullable = false)
+    private String bankCode;
+
+    @Column(name = "status")
     private String status = "ACTIVE";
 
-    @Column(nullable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now();
+        }
+        if (id == null) {
+            id = java.util.UUID.randomUUID().toString();
+        }
+        if (accountId == null) {
+            accountId = id;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

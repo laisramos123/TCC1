@@ -12,11 +12,44 @@ INSERT INTO users (id, username, password, email, cpf, enabled) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================
--- 🔐 OAUTH2 CLIENTS
+-- 🔐 OAUTH2 CLIENTS (CORRIGIDO - TODAS AS COLUNAS OBRIGATÓRIAS)
 -- ==========================================
-INSERT INTO oauth2_registered_client (id, client_id, client_secret, client_name, authorization_grant_types, redirect_uris, scopes) VALUES
-('client-001', 'oauth-client', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'TCC Open Finance Client', 'authorization_code,refresh_token', 'http://localhost:8081/login/oauth2/code/tpp-client,http://localhost:8081/callback', 'openid,profile,accounts,consent,transactions,credit-cards-accounts')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO oauth2_registered_client (
+    id,
+    client_id,
+    client_id_issued_at,
+    client_secret,
+    client_name,
+    client_authentication_methods,
+    authorization_grant_types,
+    redirect_uris,
+    post_logout_redirect_uris,
+    scopes,
+    client_settings,
+    token_settings
+) VALUES (
+    'client-001',
+    'oauth-client',
+    CURRENT_TIMESTAMP,
+    '{noop}secret',
+    'TCC Open Finance Client',
+    'client_secret_basic,client_secret_post',
+    'authorization_code,refresh_token',
+    'http://localhost:8081/callback,http://localhost:8081/authorized',
+    'http://localhost:8081',
+    'openid,profile,accounts,consent,credit-cards-accounts,customers,resources,payments',
+    '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":true,"settings.client.require-authorization-consent":false}',
+    '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":false,"settings.token.access-token-time-to-live":["java.time.Duration",1800.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",604800.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000]}'
+)
+ON CONFLICT (id) DO UPDATE SET
+    client_secret = EXCLUDED.client_secret,
+    client_authentication_methods = EXCLUDED.client_authentication_methods,
+    authorization_grant_types = EXCLUDED.authorization_grant_types,
+    redirect_uris = EXCLUDED.redirect_uris,
+    post_logout_redirect_uris = EXCLUDED.post_logout_redirect_uris,
+    scopes = EXCLUDED.scopes,
+    client_settings = EXCLUDED.client_settings,
+    token_settings = EXCLUDED.token_settings;
 
 -- ==========================================
 -- ✅ CONSENTS
@@ -158,5 +191,6 @@ ON CONFLICT (id) DO NOTHING;
 \echo '  Username: joao.silva / maria.santos / empresa.admin'
 \echo '  Password: password'
 \echo '  Client ID: oauth-client'
-\echo '  Scopes: openid,profile,accounts,consent'
+\echo '  Client Secret: secret'
+\echo '  Scopes: openid,profile,accounts,consent,...'
 \echo '========================================='
