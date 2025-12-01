@@ -146,3 +146,11 @@ logging:
     name: /app/logs/auth-server.log
     max-size: 100MB
     max-history: 30
+
+open-finance:
+  mtls:
+    enabled: true
+    keystore-path: certificates/auth-server-keystore.p12
+    keystore-password: tcc-openFinance
+    truststore-path: certificates/truststore.p12
+    truststore-password: tcc-openFinance

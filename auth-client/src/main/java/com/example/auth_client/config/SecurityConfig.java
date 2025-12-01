@@ -19,6 +19,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
                                 "/",
+                                "/open-finance",
                                 "/consent/**",
                                 "/callback",
                                 "/authorized",

@@ -1,15 +1,9 @@
 -- ==========================================
 -- SCRIPT ÚNICO DE INICIALIZAÇÃO - TCC OPEN FINANCE
 -- ==========================================
--- Este script cria TODAS as tabelas necessárias em um único banco (authdb)
--- O banco authdb é criado automaticamente pelo POSTGRES_DB no docker-compose
--- 
--- Tabelas Auth Server: users, consents, consent_permissions, oauth2_*
--- Tabelas Resource Server: accounts, transactions, credit_cards
+ 
 -- ==========================================
-
--- ==========================================
--- 👥 TABELA: USERS
+--   TABELA: USERS
 -- ==========================================
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
@@ -24,7 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_cpf ON users(cpf);
 
 -- ==========================================
--- ✅ TABELA: CONSENTS
+--   TABELA: CONSENTS
 -- ==========================================
 CREATE TABLE IF NOT EXISTS consents (
     consent_id VARCHAR(255) PRIMARY KEY,
@@ -51,8 +45,8 @@ CREATE INDEX IF NOT EXISTS idx_consents_user_id ON consents(user_id);
 CREATE INDEX IF NOT EXISTS idx_consents_status ON consents(status);
 
 -- ==========================================
--- 🔒 TABELA: CONSENT_PERMISSIONS
--- ✅ CORRIGIDO: Remover PRIMARY KEY para compatibilidade com Hibernate @ElementCollection
+--   TABELA: CONSENT_PERMISSIONS
+
 -- ==========================================
 CREATE TABLE IF NOT EXISTS consent_permissions (
     consent_id VARCHAR(255) NOT NULL,
@@ -66,7 +60,7 @@ CREATE TABLE IF NOT EXISTS consent_permissions (
 CREATE INDEX IF NOT EXISTS idx_consent_permissions_consent_id ON consent_permissions(consent_id);
 
 -- ==========================================
--- 🔐 TABELA: OAUTH2_REGISTERED_CLIENT
+--   TABELA: OAUTH2_REGISTERED_CLIENT
 -- ==========================================
 CREATE TABLE IF NOT EXISTS oauth2_registered_client (
     id VARCHAR(255) PRIMARY KEY,
@@ -85,7 +79,7 @@ CREATE TABLE IF NOT EXISTS oauth2_registered_client (
 );
 
 -- ==========================================
--- 🔐 TABELA: OAUTH2_AUTHORIZATION
+--   TABELA: OAUTH2_AUTHORIZATION
 -- ==========================================
 CREATE TABLE IF NOT EXISTS oauth2_authorization (
     id VARCHAR(255) PRIMARY KEY,
@@ -135,7 +129,7 @@ CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
 );
 
 -- ==========================================
--- 💰 TABELA: ACCOUNTS (Resource Server)
+--   TABELA: ACCOUNTS (Resource Server)
 -- ==========================================
 CREATE TABLE IF NOT EXISTS accounts (
     id VARCHAR(255) PRIMARY KEY,
@@ -160,7 +154,7 @@ CREATE INDEX IF NOT EXISTS idx_accounts_account_number ON accounts(account_numbe
 CREATE INDEX IF NOT EXISTS idx_accounts_holder_document ON accounts(holder_document);
 
 -- ==========================================
--- 💸 TABELA: TRANSACTIONS (Resource Server)
+--   TABELA: TRANSACTIONS (Resource Server)
 -- ==========================================
 CREATE TABLE IF NOT EXISTS transactions (
     id VARCHAR(255) PRIMARY KEY,
@@ -182,7 +176,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_i
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
 
 -- ==========================================
--- 💳 TABELA: CREDIT_CARDS (Resource Server)
+--   TABELA: CREDIT_CARDS (Resource Server)
 -- ==========================================
 CREATE TABLE IF NOT EXISTS credit_cards (
     id VARCHAR(255) PRIMARY KEY,
@@ -205,7 +199,7 @@ CREATE INDEX IF NOT EXISTS idx_credit_cards_user_id ON credit_cards(user_id);
 CREATE INDEX IF NOT EXISTS idx_credit_cards_holder_document ON credit_cards(card_holder_document);
 
 -- ==========================================
--- 📥 INSERIR DADOS DE EXEMPLO
+--   INSERIR DADOS DE EXEMPLO
 -- ==========================================
 
 -- Users (password = 'password' com BCrypt E prefixo {bcrypt})
@@ -256,7 +250,4 @@ INSERT INTO credit_cards (id, card_id, user_id, card_number, card_holder_name, c
 ('card-001', 'card-001', 'user-001', '**** **** **** 1234', 'Joao Silva', '12345678901', '2027-12-31', 'CREDITO', 'VISA', 10000.00, 8500.00, 'ACTIVE', NOW(), NOW()),
 ('card-002', 'card-002', 'user-002', '**** **** **** 5678', 'Maria Santos', '10987654321', '2028-06-30', 'CREDITO', 'MASTERCARD', 5000.00, 4200.00, 'ACTIVE', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
-
--- ==========================================
--- ✅ INICIALIZAÇÃO CONCLUÍDA
 -- ==========================================

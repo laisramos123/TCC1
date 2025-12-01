@@ -48,10 +48,14 @@ openFinance:
       requests-per-minute: 100
       burst-capacity: 200
 
-# ✅ mTLS desabilitado (desenvolvimento)
+# ✅ mTLS HABILITADO
 open-finance:
   mtls:
-    enabled: false
+    enabled: true
+    keystore-path: certificates/resource-server-keystore.p12
+    keystore-password: tcc-openFinance
+    truststore-path: certificates/truststore.p12
+    truststore-password: tcc-openFinance
 
 logging:
   level:

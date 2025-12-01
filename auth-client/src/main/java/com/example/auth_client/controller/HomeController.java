@@ -7,12 +7,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
 
     @GetMapping("/")
-    public String home() {
+    public String dashboard() {
+        return "quantumBank";
+    }
+
+    @GetMapping("/open-finance")
+    public String openFinance() {
         return "home";
     }
 
     @GetMapping("/error")
-    public String error() {
+    public String handleError() {
         return "error";
     }
 }

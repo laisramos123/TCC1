@@ -1,24 +1,13 @@
--- ==========================================
--- 📥 SCRIPT PARA ADICIONAR/CORRIGIR DADOS DE TESTE
--- Execute este script no PostgreSQL (container tcc-postgres)
--- ==========================================
 
--- Primeiro, verifica o CPF correto dos usuários
 -- joao.silva tem CPF: 12345678901
 -- maria.santos tem CPF: 10987654321
 
--- ==========================================
--- 🔧 CORRIGIR: user_id deve ser o CPF (que vem no token)
--- ==========================================
 UPDATE accounts SET user_id = '12345678901' WHERE user_id = 'user-001';
 UPDATE accounts SET user_id = '10987654321' WHERE user_id = 'user-002';
 
 UPDATE credit_cards SET user_id = '12345678901' WHERE user_id = 'user-001';
 UPDATE credit_cards SET user_id = '10987654321' WHERE user_id = 'user-002';
-
--- ==========================================
--- 💰 INSERIR MAIS CONTAS DE TESTE
--- ==========================================
+ 
 INSERT INTO accounts (id, account_id, user_id, account_number, account_type, balance, available_balance, currency, holder_name, holder_document, branch_code, bank_code, status, created_at, updated_at) VALUES
 ('acc-004', 'acc-004', '12345678901', '99887-7', 'CONTA_SALARIO', 8500.00, 8500.00, 'BRL', 'Joao Silva', '12345678901', '1234', '001', 'ACTIVE', NOW(), NOW()),
 ('acc-005', 'acc-005', '12345678901', '11223-3', 'CONTA_PAGAMENTO', 1200.00, 1200.00, 'BRL', 'Joao Silva', '12345678901', '1234', '341', 'ACTIVE', NOW(), NOW()),
@@ -29,9 +18,7 @@ ON CONFLICT (id) DO UPDATE SET
     available_balance = EXCLUDED.available_balance,
     updated_at = NOW();
 
--- ==========================================
--- 💸 INSERIR MAIS TRANSAÇÕES DE TESTE
--- ==========================================
+ 
 INSERT INTO transactions (id, transaction_id, account_id, transaction_type, type, amount, currency, description, transaction_date, transaction_date_time, balance_after, status, created_at) VALUES
 -- Transações João Silva - Conta Corrente
 ('txn-006', 'txn-006', 'acc-001', 'CREDITO', 'PIX', 2500.00, 'BRL', 'PIX recebido - Freelance', NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days', 7500.00, 'COMPLETED', NOW()),
@@ -50,9 +37,7 @@ INSERT INTO transactions (id, transaction_id, account_id, transaction_type, type
 ('txn-015', 'txn-015', 'acc-003', 'DEBITO', 'COMPRA_DEBITO', -300.00, 'BRL', 'Farmácia', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days', 5500.75, 'COMPLETED', NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- ==========================================
--- 💳 INSERIR MAIS CARTÕES DE CRÉDITO
--- ==========================================
+ 
 INSERT INTO credit_cards (id, card_id, user_id, card_number, card_holder_name, card_holder_document, expiry_date, card_type, brand, credit_limit, available_limit, status, created_at, updated_at) VALUES
 ('card-003', 'card-003', '12345678901', '**** **** **** 9012', 'JOAO SILVA', '12345678901', '2029-03-31', 'CREDITO', 'MASTERCARD', 15000.00, 12300.00, 'ACTIVE', NOW(), NOW()),
 ('card-004', 'card-004', '12345678901', '**** **** **** 3456', 'JOAO SILVA', '12345678901', '2026-09-30', 'CREDITO', 'ELO', 3000.00, 2850.00, 'ACTIVE', NOW(), NOW()),
@@ -63,7 +48,7 @@ ON CONFLICT (id) DO UPDATE SET
     updated_at = NOW();
 
 -- ==========================================
--- ✅ VERIFICAR DADOS INSERIDOS
+--   VERIFICAR DADOS INSERIDOS
 -- ==========================================
 -- SELECT * FROM accounts WHERE user_id = '12345678901';
 -- SELECT * FROM transactions WHERE account_id IN (SELECT account_id FROM accounts WHERE user_id = '12345678901');

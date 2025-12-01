@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumBank - Minha Conta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* Header do Banco */
+        .bank-header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .bank-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .bank-logo span {
+            background: linear-gradient(135deg, #7c4dff, #448aff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #7c4dff, #448aff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .user-name {
+            font-size: 0.95em;
+        }
+
+        .user-name small {
+            display: block;
+            opacity: 0.7;
+            font-size: 0.85em;
+        }
+
+        /* Container Principal */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* Saldo Card */
+        .balance-card {
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(26, 35, 126, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        }
+
+        .balance-label {
+            font-size: 0.95em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .balance-value {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .balance-details {
+            display: flex;
+            gap: 40px;
+            font-size: 0.95em;
+        }
+
+        .balance-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .balance-item span:first-child {
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        /* Menu de Ações */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .action-card.open-finance {
+            background: linear-gradient(135deg, #00c853 0%, #00e676 100%);
+            color: white;
+        }
+
+        .action-card.open-finance:hover {
+            box-shadow: 0 8px 25px rgba(0,200,83,0.3);
+        }
+
+        .action-icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+        }
+
+        .action-label {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .action-sublabel {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        /* Últimas Transações */
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .transactions-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 25px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-item:hover {
+            background: #f8f9fa;
+        }
+
+        .transaction-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            margin-right: 15px;
+        }
+
+        .transaction-icon.credit {
+            background: #e8f5e9;
+        }
+
+        .transaction-icon.debit {
+            background: #ffebee;
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-description {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .transaction-date {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .transaction-amount.credit {
+            color: #2e7d32;
+        }
+
+        .transaction-amount.debit {
+            color: #c62828;
+        }
+
+        /* Cartões */
+        .cards-section {
+            margin-top: 30px;
+        }
+
+        .credit-card {
+            background: linear-gradient(135deg, #37474f 0%, #263238 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card-chip {
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(135deg, #ffd54f, #ffb300);
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .card-number {
+            font-size: 1.3em;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-info label {
+            font-size: 0.7em;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .card-info span {
+            display: block;
+            font-size: 0.95em;
+            margin-top: 3px;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .bank-header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .balance-value {
+                font-size: 2.2em;
+            }
+
+            .balance-details {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header do Banco -->
+    <header class="bank-header">
+        <div class="bank-logo">
+            🔐 <span>QuantumBank</span>
+        </div>
+        <div class="user-info">
+            <div>
+                <div class="user-name">
+                    João Silva
+                    <small>Ag: 1234 | Cc: 12345-6</small>
+                </div>
+            </div>
+            <div class="user-avatar">JS</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Card de Saldo -->
+        <div class="balance-card">
+            <div class="balance-label">Saldo disponível</div>
+            <div class="balance-value">R$ 4.800,00</div>
+            <div class="balance-details">
+                <div class="balance-item">
+                    <span>Conta Corrente</span>
+                    <span>R$ 4.800,00</span>
+                </div>
+                <div class="balance-item">
+                    <span>Poupança</span>
+                    <span>R$ 15.000,50</span>
+                </div>
+                <div class="balance-item">
+                    <span>Investimentos</span>
+                    <span>R$ 25.340,00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu de Ações -->
+        <div class="actions-grid">
+            <div class="action-card">
+                <div class="action-icon">💸</div>
+                <div class="action-label">Pix</div>
+            </div>
+            <div class="action-card">
+                <div class="action-icon">📱</div>
+                <div class="action-label">Transferir</div>
+            </div>
+            <div class="action-card">
+                <div class="action-icon">📄</div>
+                <div class="action-label">Pagar</div>
+            </div>
+            <div class="action-card">
+                <div class="action-icon">💳</div>
+                <div class="action-label">Cartões</div>
+            </div>
+            <a href="/open-finance" class="action-card open-finance">
+                <div class="action-icon">🌐</div>
+                <div class="action-label">Open Finance</div>
+                <div class="action-sublabel">Compartilhar dados</div>
+            </a>
+            <div class="action-card">
+                <div class="action-icon">📊</div>
+                <div class="action-label">Investir</div>
+            </div>
+        </div>
+
+        <!-- Últimas Transações -->
+        <h2 class="section-title">📋 Últimas Transações</h2>
+        <div class="transactions-card">
+            <div class="transaction-item">
+                <div class="transaction-icon credit">💵</div>
+                <div class="transaction-details">
+                    <div class="transaction-description">Salário - Empresa XYZ</div>
+                    <div class="transaction-date">28 Nov 2025</div>
+                </div>
+                <div class="transaction-amount credit">+ R$ 5.000,00</div>
+            </div>
+            <div class="transaction-item">
+                <div class="transaction-icon debit">🛒</div>
+                <div class="transaction-details">
+                    <div class="transaction-description">Supermercado Extra</div>
+                    <div class="transaction-date">27 Nov 2025</div>
+                </div>
+                <div class="transaction-amount debit">- R$ 150,00</div>
+            </div>
+            <div class="transaction-item">
+                <div class="transaction-icon debit">⛽</div>
+                <div class="transaction-details">
+                    <div class="transaction-description">Posto Shell</div>
+                    <div class="transaction-date">26 Nov 2025</div>
+                </div>
+                <div class="transaction-amount debit">- R$ 50,00</div>
+            </div>
+            <div class="transaction-item">
+                <div class="transaction-icon credit">📥</div>
+                <div class="transaction-details">
+                    <div class="transaction-description">Pix Recebido - Maria</div>
+                    <div class="transaction-date">25 Nov 2025</div>
+                </div>
+                <div class="transaction-amount credit">+ R$ 200,00</div>
+            </div>
+            <div class="transaction-item">
+                <div class="transaction-icon debit">🎬</div>
+                <div class="transaction-details">
+                    <div class="transaction-description">Netflix</div>
+                    <div class="transaction-date">24 Nov 2025</div>
+                </div>
+                <div class="transaction-amount debit">- R$ 39,90</div>
+            </div>
+        </div>
+
+        <!-- Seção de Cartões -->
+        <div class="cards-section">
+            <h2 class="section-title">💳 Meus Cartões</h2>
+            <div class="credit-card">
+                <div class="card-chip"></div>
+                <div class="card-number">•••• •••• •••• 1234</div>
+                <div class="card-footer">
+                    <div class="card-info">
+                        <label>Titular</label>
+                        <span>JOAO SILVA</span>
+                    </div>
+                    <div class="card-info">
+                        <label>Validade</label>
+                        <span>12/27</span>
+                    </div>
+                    <div class="card-info">
+                        <label>Limite</label>
+                        <span>R$ 10.000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

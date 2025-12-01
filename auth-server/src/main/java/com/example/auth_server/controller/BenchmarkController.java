@@ -2,6 +2,7 @@ package com.example.auth_server.controller;
 
 import com.example.auth_server.signature.SignatureAlgorithm;
 import com.example.auth_server.metrics.DilithiumMetrics;
+import com.example.auth_server.metrics.SignatureMetricsExporter; // ADICIONAR
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class BenchmarkController {
     private final SignatureAlgorithm rsaSignature;
     private final SignatureAlgorithm dilithiumSignature;
     private final DilithiumMetrics dilithiumMetrics;
+    private final SignatureMetricsExporter metricsExporter; // ADICIONAR
 
     private final OperatingSystemMXBean osMXBean;
     private final ThreadMXBean threadMXBean;
@@ -28,10 +30,12 @@ public class BenchmarkController {
     public BenchmarkController(
             @Qualifier("rsaSignature") SignatureAlgorithm rsaSignature,
             @Qualifier("dilithiumAlgorithm") SignatureAlgorithm dilithiumSignature,
-            DilithiumMetrics dilithiumMetrics) {
+            DilithiumMetrics dilithiumMetrics,
+            SignatureMetricsExporter metricsExporter) { // ADICIONAR
         this.rsaSignature = rsaSignature;
         this.dilithiumSignature = dilithiumSignature;
         this.dilithiumMetrics = dilithiumMetrics;
+        this.metricsExporter = metricsExporter; // ADICIONAR
 
         this.osMXBean = ManagementFactory.getOperatingSystemMXBean();
         this.threadMXBean = ManagementFactory.getThreadMXBean();
@@ -450,6 +454,7 @@ public class BenchmarkController {
         }
     }
 
+    // MODIFICAR o método benchmarkAlgorithmWithCpu para registrar métricas:
     private Map<String, Object> benchmarkAlgorithmWithCpu(
             SignatureAlgorithm algorithm,
             byte[] data,
@@ -460,22 +465,36 @@ public class BenchmarkController {
         List<Double> cpuSamples = new ArrayList<>();
         byte[] lastSignature = null;
 
-        // Métricas de CPU antes do benchmark
         double cpuBefore = getProcessCpuLoad();
         long threadCpuBefore = getCurrentThreadCpuTime();
         double peakCpu = cpuBefore;
 
-        for (int i = 0; i < iterations; i++) {
+        boolean isDilithium = algorithm.getAlgorithmName().equalsIgnoreCase("DILITHIUM");
 
+        for (int i = 0; i < iterations; i++) {
             long signStart = System.nanoTime();
             lastSignature = algorithm.sign(data);
-            long signEnd = System.nanoTime();
-            signTimes.add((signEnd - signStart) / 1000);
+            long signDuration = System.nanoTime() - signStart;
+            signTimes.add(signDuration / 1000); // microseconds
+
+            // ADICIONAR: Registrar métricas no Prometheus
+            if (isDilithium) {
+                metricsExporter.recordDilithiumSign(signDuration, lastSignature.length);
+            } else {
+                metricsExporter.recordRsaSign(signDuration, lastSignature.length);
+            }
 
             long verifyStart = System.nanoTime();
             algorithm.verify(data, lastSignature, algorithm.getPublicKey());
-            long verifyEnd = System.nanoTime();
-            verifyTimes.add((verifyEnd - verifyStart) / 1000);
+            long verifyDuration = System.nanoTime() - verifyStart;
+            verifyTimes.add(verifyDuration / 1000);
+
+            // ADICIONAR: Registrar métricas de verificação
+            if (isDilithium) {
+                metricsExporter.recordDilithiumVerify(verifyDuration);
+            } else {
+                metricsExporter.recordRsaVerify(verifyDuration);
+            }
 
             if (i % 10 == 0) {
                 double currentCpu = getProcessCpuLoad();

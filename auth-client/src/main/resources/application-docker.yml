@@ -1,3 +1,11 @@
+open-finance:
+  mtls:
+    enabled: true
+    keystore-path: certificates/tpp-client-keystore.p12
+    keystore-password: tcc-openFinance
+    truststore-path: certificates/truststore.p12
+    truststore-password: tcc-openFinance
+
 spring:
   application:
     name: auth-client
