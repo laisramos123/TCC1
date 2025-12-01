@@ -82,3 +82,11 @@ management:
     metrics:
       export:
         enabled: true
+
+open-finance:
+  mtls:
+    enabled: true
+    keystore-path: certificates/auth-client-keystore.p12
+    keystore-password: tcc-openFinance
+    truststore-path: certificates/truststore.p12
+    truststore-password: tcc-openFinance

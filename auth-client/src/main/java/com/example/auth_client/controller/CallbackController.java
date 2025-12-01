@@ -55,9 +55,9 @@ public class CallbackController {
 
             try {
                 consentService.markAsConsumed(consentId);
-                logger.warn("✅ Consent marcado como CONSUMED: {}");
+                logger.warn("  Consent marcado como CONSUMED: {}");
             } catch (Exception e) {
-                logger.warn("⚠️ Falha ao marcar consent como CONSUMED: {}");
+                logger.warn("  Falha ao marcar consent como CONSUMED: {}");
 
             }
 

@@ -32,12 +32,15 @@ spring:
             client-id: ${CLIENT_ID:oauth-client}
             client-secret: ${CLIENT_SECRET:secret}
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/callback"
+
+            redirect-uri: "http://localhost:8081/callback"
             scope:
               - openid
               - consents
               - accounts
             client-name: Open Finance TPP Client
+
+            client-authentication-method: client_secret_basic
 
         provider:
           open-finance-client:
@@ -61,9 +64,24 @@ server:
         secure: false
         http-only: true
 
+tpp:
+  client-id: ${CLIENT_ID:oauth-client}
+  client-secret: ${CLIENT_SECRET:secret}
+  redirect-uri: http://localhost:8081/callback
+
+  bank:
+    # ✅ URL INTERNA: Para chamadas server-to-server (container para container)
+    authorization-server-internal: ${TPP_BANK_AUTHORIZATION_SERVER_INTERNAL:http://auth-server:8080}
+
+    # ✅ URL EXTERNA: Para redirecionamentos do navegador
+    authorization-server: ${TPP_BANK_AUTHORIZATION_SERVER:http://localhost:8080}
+
+    # ✅ Resource server (interno)
+    resource-server: ${TPP_BANK_RESOURCE_SERVER:http://resource-server:8082}
+
+# ✅ MANTER: Suas configurações originais (compatibilidade)
 authorization-server:
   internal: http://auth-server:8080
-
   public: http://localhost:8080
 
 resource-server:
@@ -75,6 +93,8 @@ logging:
     org.springframework.security: DEBUG
     org.springframework.web: INFO
     com.example.auth_client: DEBUG
+
+    org.springframework.security.oauth2: DEBUG
 
 management:
   endpoints:

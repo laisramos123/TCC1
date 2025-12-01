@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 
 import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
@@ -17,10 +18,16 @@ public class CustomJwtDecoder implements JwtDecoder {
 
     private final SignatureAlgorithm signatureAlgorithm;
     private final ObjectMapper objectMapper;
+    private final PublicKey publicKey;
 
     public CustomJwtDecoder(SignatureAlgorithm signatureAlgorithm) {
+        this(signatureAlgorithm, signatureAlgorithm.getPublicKey());
+    }
+
+    public CustomJwtDecoder(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey) {
         this.signatureAlgorithm = signatureAlgorithm;
         this.objectMapper = new ObjectMapper();
+        this.publicKey = publicKey;
     }
 
     @Override
@@ -51,7 +58,7 @@ public class CustomJwtDecoder implements JwtDecoder {
             boolean isValid = signatureAlgorithm.verify(
                     signingInput.getBytes(StandardCharsets.UTF_8),
                     signatureBytes,
-                    signatureAlgorithm.getPublicKey());
+                    publicKey);
 
             if (!isValid) {
                 throw new JwtException("Invalid JWT signature - " + signatureAlgorithm.getAlgorithmName());
@@ -69,7 +76,6 @@ public class CustomJwtDecoder implements JwtDecoder {
                     ? Instant.ofEpochSecond(((Number) claims.get("exp")).longValue())
                     : issuedAt.plusSeconds(3600);
 
-            // 5. Validate expiration
             if (Instant.now().isAfter(expiresAt)) {
                 throw new JwtException("JWT token expired");
             }

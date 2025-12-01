@@ -45,7 +45,6 @@ public class ConsentListResponse {
         this.meta = meta;
     }
 
-    // ========== Links ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Links {
 
@@ -108,7 +107,6 @@ public class ConsentListResponse {
         }
     }
 
-    // ========== Meta ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Meta {
 

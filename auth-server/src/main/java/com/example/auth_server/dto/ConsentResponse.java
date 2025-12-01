@@ -45,7 +45,6 @@ public class ConsentResponse {
         this.meta = meta;
     }
 
-    // ========== Data ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {
 
@@ -163,7 +162,6 @@ public class ConsentResponse {
         }
     }
 
-    // ========== LoggedUser ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class LoggedUser {
 
@@ -182,7 +180,6 @@ public class ConsentResponse {
         }
     }
 
-    // ========== BusinessEntity ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class BusinessEntity {
 
@@ -201,7 +198,6 @@ public class ConsentResponse {
         }
     }
 
-    // ========== Document ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Document {
 
@@ -231,7 +227,6 @@ public class ConsentResponse {
         }
     }
 
-    // ========== Links ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Links {
 
@@ -294,7 +289,6 @@ public class ConsentResponse {
         }
     }
 
-    // ========== Meta ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Meta {
 

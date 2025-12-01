@@ -1,16 +1,6 @@
 spring:
   application:
     name: auth-server
-    # open-finance:
-    #   mtls:
-    #     enabled: false
-    tpp:
-      bank:
-        authorization-server-internal: http://auth-server:8080
-
-        authorization-server: http://localhost:8080
-
-        resource-server: http://resource-server:8082
 
   sql:
     init:
@@ -21,7 +11,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/authdb?reWriteBatchedInserts=true&stringtype=unspecified}
     username: ${SPRING_DATASOURCE_USERNAME:tcc_user}
-    password: ${SPRING_DATASOURCE_PASSWORD:tcc_password}
+    password: ${SPRING_DATASOURCE_PASSWORD:quantum_secure_password_2024!@#}
     driver-class-name: org.postgresql.Driver
 
     hikari:
@@ -33,6 +23,7 @@ spring:
 
   jpa:
     hibernate:
+      # ✅ CORRIGIDO: validate (não update) - tabelas criadas pelos init-scripts
       ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
@@ -48,8 +39,6 @@ spring:
           batch_versioned_data: true
         order_inserts: true
         order_updates: true
-        connection:
-          provider_disables_autocommit: true
         query:
           in_clause_parameter_padding: true
         generate_statistics: false
@@ -118,7 +107,6 @@ dilithium:
 jwt:
   signature:
     algorithm: ${JWT_SIGNATURE_ALGORITHM:DILITHIUM}
-    # ✅ IMPORTANTE: Mesmo issuer para consistência
     issuer: ${JWT_ISSUER:http://localhost:8080}
 
 cors:

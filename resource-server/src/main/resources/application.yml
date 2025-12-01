@@ -65,8 +65,10 @@ open-banking:
 open-finance:
   mtls:
     enabled: true
-    client-certificate-path: classpath:certificates/resource-server-keystore.p12
-    client-certificate-password: changeit
+    keystore-path: certificates/resource-server-keystore.p12
+    keystore-password: tcc-openFinance
+    truststore-path: certificates/truststore.p12
+    truststore-password: tcc-openFinance
 
 logging:
   level:

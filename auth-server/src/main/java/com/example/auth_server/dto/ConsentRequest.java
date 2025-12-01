@@ -33,7 +33,6 @@ public class ConsentRequest {
         this.clientId = clientId;
     }
 
-    // ========== Data ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {
 
@@ -107,7 +106,6 @@ public class ConsentRequest {
         }
     }
 
-    // ========== LoggedUser ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class LoggedUser {
 
@@ -126,7 +124,6 @@ public class ConsentRequest {
         }
     }
 
-    // ========== BusinessEntity ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class BusinessEntity {
 
@@ -145,7 +142,6 @@ public class ConsentRequest {
         }
     }
 
-    // ========== Document ==========
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Document {
 

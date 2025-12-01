@@ -25,10 +25,8 @@ public class AuthorizationService {
 
         String codeChallenge = generateCodeChallenge(codeVerifier);
 
-        // Scope com formato correto
         String scope = "openid consent:" + consentId + " accounts";
 
-        // ✅ ENCODING MANUAL - Substitui + por %20
         String scopeEncoded = URLEncoder.encode(scope, StandardCharsets.UTF_8).replace("+", "%20");
         String clientIdEncoded = URLEncoder.encode(clientId, StandardCharsets.UTF_8).replace("+", "%20");
         String redirectUriEncoded = URLEncoder.encode(redirectUri, StandardCharsets.UTF_8).replace("+", "%20");
@@ -48,14 +46,13 @@ public class AuthorizationService {
                 "S256",
                 nonceEncoded);
 
-        // Log para verificação
         System.out.println("===========================================");
-        System.out.println("🔗 AUTHORIZATION URL GERADA:");
+        System.out.println("  AUTHORIZATION URL GERADA:");
         System.out.println(authUrl);
         System.out.println("===========================================");
-        System.out.println("🔍 Scope original: " + scope);
-        System.out.println("🔍 Scope encodado: " + scopeEncoded);
-        System.out.println("🔍 ConsentId: " + consentId);
+        System.out.println("  Scope original: " + scope);
+        System.out.println("  Scope encodado: " + scopeEncoded);
+        System.out.println("  ConsentId: " + consentId);
         System.out.println("===========================================");
 
         return authUrl;

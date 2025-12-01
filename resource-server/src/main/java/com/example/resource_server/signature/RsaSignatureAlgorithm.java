@@ -77,7 +77,7 @@ public class RsaSignatureAlgorithm implements SignatureAlgorithm {
 
     @Override
     public String getJwtAlgorithmHeader() {
-        return "RS256";
+        return "PS256";
     }
 
     @Override

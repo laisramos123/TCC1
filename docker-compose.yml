@@ -8,7 +8,9 @@ x-healthcheck-config: &healthcheck-defaults
   retries: 5
 
 services:
-   
+  # ========================================
+  # 🗄️ POSTGRESQL DATABASE
+  # ========================================
   postgres:
     image: postgres:15-alpine
     container_name: tcc-postgres
@@ -16,28 +18,27 @@ services:
     environment:
       <<: *common-variables
       POSTGRES_USER: ${DB_USER:-tcc_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-tcc_password}
-      POSTGRES_DB: tcc_openbanking
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-quantum_secure_password_2024!@#}
+      # ✅ CORRIGIDO: Criar authdb como banco padrão
+      POSTGRES_DB: authdb
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
-      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-      POSTGRES_MAX_CONNECTIONS: 200
-      POSTGRES_SHARED_BUFFERS: 256MB
-      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
-      POSTGRES_WORK_MEM: 4MB
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+      # ✅ CORRIGIDO: Usar pasta sql com scripts corretos
+      - ./sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tcc_user} -d tcc_openbanking && psql -U ${DB_USER:-tcc_user} -d authdb -c 'SELECT 1' && psql -U ${DB_USER:-tcc_user} -d resourcedb -c 'SELECT 1'"]
-      start_period: 45s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tcc_user} -d authdb"]
+      start_period: 60s
     networks:
       tcc-network:
         ipv4_address: 172.28.1.2
 
-   
+  # ========================================
+  # 🔴 REDIS CACHE
+  # ========================================
   redis:
     image: redis:7-alpine
     container_name: tcc-redis
@@ -55,7 +56,9 @@ services:
       tcc-network:
         ipv4_address: 172.28.1.3
 
-   
+  # ========================================
+  # 🔐 AUTH SERVER (OAuth2 + Dilithium3)
+  # ========================================
   auth-server:
     build: 
       context: ./auth-server
@@ -71,7 +74,6 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8080
       
-      # 🆕 ADICIONADO: Configuração Prometheus
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
       MANAGEMENT_METRICS_TAGS_APPLICATION: auth-server
@@ -80,7 +82,7 @@ services:
       
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb?reWriteBatchedInserts=true
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-tcc_user}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tcc_password}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-quantum_secure_password_2024!@#}
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 20
       SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 10
       SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 30000
@@ -109,7 +111,7 @@ services:
       DILITHIUM_KEY_CACHE_ENABLED: true
       DILITHIUM_PRECOMPUTE_KEYS: true
       DILITHIUM_KEY_POOL_SIZE: 10
-      JWT_SIGNATURE_ALGORITHM: DILITHIUM
+      JWT_SIGNATURE_ALGORITHM: ${SIGNATURE_ALGORITHM:-DILITHIUM}
       
       JWT_ISSUER: http://localhost:8080
       OAUTH_CLIENT_SECRET: ${OAUTH_SECRET:-oauth_secret_2024}
@@ -119,6 +121,7 @@ services:
       LOGGING_LEVEL_ROOT: INFO
       LOGGING_LEVEL_COM_EXAMPLE: DEBUG
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+      OPEN_FINANCE_MTLS_ENABLED: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -128,15 +131,18 @@ services:
       - ./auth-server/target:/app/target:ro
       - auth_logs:/app/logs
       - auth_keys:/app/keys
+      - ./certificates:/app/certificates:ro
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health && curl -f http://localhost:8080/api/v1/dilithium/info"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       start_period: 180s
     networks:
       tcc-network:
         ipv4_address: 172.28.1.10
 
-  
+  # ========================================
+  # 📊 RESOURCE SERVER (Open Banking API)
+  # ========================================
   resource-server:
     build: 
       context: ./resource-server
@@ -152,16 +158,16 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8082
       
-      # 🆕 ADICIONADO: Configuração Prometheus
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
       MANAGEMENT_METRICS_TAGS_APPLICATION: resource-server
       MANAGEMENT_METRICS_TAGS_ENVIRONMENT: docker
       MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
       
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/resourcedb?reWriteBatchedInserts=true
+     
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb?reWriteBatchedInserts=true
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-tcc_user}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tcc_password}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-quantum_secure_password_2024!@#}
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 15
       SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 5
       SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 30000
@@ -176,11 +182,8 @@ services:
         -Djava.security.egd=file:/dev/./urandom
         -Dserver.tomcat.threads.max=200
       
-      AUTHORIZATION_SERVER_BASE_URL: http://localhost:8080
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://localhost:8080/.well-known/jwks.json
-      
-      JWT_SIGNATURE_ALGORITHM: DILITHIUM
+      JWT_SIGNATURE_ALGORITHM: ${SIGNATURE_ALGORITHM:-DILITHIUM}
+      AUTH_SERVER_URL: http://auth-server:8080
       
       CORS_ALLOWED_ORIGINS: http://localhost:8081,http://auth-client:8081
       
@@ -188,6 +191,7 @@ services:
       
       LOGGING_LEVEL_ROOT: INFO
       LOGGING_LEVEL_COM_EXAMPLE: DEBUG
+      OPEN_FINANCE_MTLS_ENABLED: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -198,6 +202,7 @@ services:
     volumes:
       - ./resource-server/target:/app/target:ro
       - resource_logs:/app/logs
+      - ./certificates:/app/certificates:ro
     healthcheck:
       <<: *healthcheck-defaults
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health"]
@@ -206,7 +211,9 @@ services:
       tcc-network:
         ipv4_address: 172.28.1.11
 
-   
+  # ========================================
+  # 🌐 AUTH CLIENT (TPP Frontend)
+  # ========================================
   auth-client:
     build: 
       context: ./auth-client
@@ -221,7 +228,6 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8081
       
-      # 🆕 ADICIONADO: Configuração Prometheus
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
       MANAGEMENT_METRICS_TAGS_APPLICATION: auth-client
@@ -246,6 +252,7 @@ services:
       
       LOGGING_LEVEL_ROOT: INFO
       LOGGING_LEVEL_COM_EXAMPLE: DEBUG
+      OPEN_FINANCE_MTLS_ENABLED: "true"
     depends_on:
       auth-server:
         condition: service_healthy
@@ -254,6 +261,7 @@ services:
     volumes:
       - ./auth-client/target:/app/target:ro
       - client_logs:/app/logs
+      - ./certificates:/app/certificates:ro
     healthcheck:
       <<: *healthcheck-defaults
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
@@ -263,7 +271,7 @@ services:
         ipv4_address: 172.28.1.12
 
   # ========================================
-  # 🆕 PROMETHEUS - SISTEMA DE MÉTRICAS
+  # 📊 PROMETHEUS - SISTEMA DE MÉTRICAS
   # ========================================
   prometheus:
     image: prom/prometheus:v2.48.1
@@ -302,7 +310,7 @@ services:
         ipv4_address: 172.28.1.30
 
   # ========================================
-  # 🆕 GRAFANA - VISUALIZAÇÃO DE MÉTRICAS
+  # 📈 GRAFANA - VISUALIZAÇÃO DE MÉTRICAS
   # ========================================
   grafana:
     image: grafana/grafana:10.2.3
@@ -312,35 +320,20 @@ services:
       - "3000:3000"
     environment:
       <<: *common-variables
-      # Credenciais de acesso
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
-      
-      # Configurações de segurança
       GF_SECURITY_ALLOW_EMBEDDING: "false"
       GF_SECURITY_COOKIE_SECURE: "false"
       GF_SECURITY_COOKIE_SAMESITE: "lax"
-      
-      # Desabilitar signup
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ALLOW_ORG_CREATE: "false"
-      
-      # Configurações de servidor
       GF_SERVER_ROOT_URL: http://localhost:3000
       GF_SERVER_SERVE_FROM_SUB_PATH: "false"
-      
-      # Plugins
       GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
-      
-      # Analytics (desabilitar para privacidade)
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
-      
-      # Logging
       GF_LOG_MODE: console
       GF_LOG_LEVEL: info
-      
-      # Paths
       GF_PATHS_PROVISIONING: /etc/grafana/provisioning
       GF_PATHS_DATA: /var/lib/grafana
       GF_PATHS_LOGS: /var/log/grafana
@@ -362,7 +355,7 @@ services:
         ipv4_address: 172.28.1.31
 
   # ========================================
-  # 🆕 NODE EXPORTER (OPCIONAL - Métricas do Host)
+  # 📊 NODE EXPORTER (Métricas do Host)
   # ========================================
   node-exporter:
     image: prom/node-exporter:v1.7.0
@@ -384,7 +377,7 @@ services:
         ipv4_address: 172.28.1.32
 
   # ========================================
-  # 🆕 REDIS EXPORTER (OPCIONAL - Métricas do Redis)
+  # 🔴 REDIS EXPORTER (Métricas do Redis)
   # ========================================
   redis-exporter:
     image: oliver006/redis_exporter:v1.55.0
@@ -401,7 +394,9 @@ services:
       tcc-network:
         ipv4_address: 172.28.1.33
 
-   
+  # ========================================
+  # 🗄️ PGADMIN - GERENCIAMENTO POSTGRESQL
+  # ========================================
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: tcc-pgadmin
@@ -437,7 +432,6 @@ volumes:
     driver: local
   pgadmin_data:
     driver: local
-   
   prometheus_data:
     driver: local
   grafana_data:

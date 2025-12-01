@@ -1,20 +1,20 @@
 spring:
   application:
     name: resource-server
-  # open-finance:
-  #   mtls:
-  #     enabled: false
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/openFinance_resources
-    username: ${DB_USERNAME:admin}
-    password: ${DB_PASSWORD:quantum_secure_2024}
+    # ✅ CORRIGIDO: URL do banco é resourcedb (não openFinance_resources)
+    url: jdbc:postgresql://postgres:5432/resourcedb
+    username: ${DB_USERNAME:tcc_user}
+    password: ${DB_PASSWORD:quantum_secure_password_2024!@#}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      # ✅ CORRIGIDO: validate (não update) - tabelas criadas pelos init-scripts
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
 
   security:
     oauth2:
@@ -26,6 +26,19 @@ spring:
 server:
   port: 8082
 
+# ✅ Configuração JWT (usado pelo ResourceServerConfig)
+jwt:
+  signature:
+    algorithm: ${JWT_SIGNATURE_ALGORITHM:DILITHIUM} # RSA ou DILITHIUM
+
+# URL do auth-server para buscar chaves públicas
+auth-server:
+  url: ${AUTH_SERVER_URL:http://auth-server:8080}
+
+# ✅ URL do auth-server para validação de consent (ConsentValidationService)
+authorization-server:
+  base-url: ${AUTH_SERVER_URL:http://auth-server:8080}
+
 openFinance:
   consent:
     default-expiration-hours: 24
@@ -35,10 +48,16 @@ openFinance:
       requests-per-minute: 100
       burst-capacity: 200
 
+# ✅ mTLS desabilitado (desenvolvimento)
+open-finance:
+  mtls:
+    enabled: false
+
 logging:
   level:
     com.example.resource_server: DEBUG
     org.springframework.security: INFO
+    org.springframework.security.oauth2: DEBUG
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId},%X{consentId}] %logger{36} - %msg%n"
 

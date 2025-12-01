@@ -36,12 +36,11 @@ public class DilithiumHealthIndicator implements HealthIndicator {
             details.put("bouncyCastlePQC", bcpqcProvider ? "OK" : "NOT_LOADED");
 
             if (dilithiumSignature != null) {
-                // Garantir que as chaves estão geradas
+
                 if (dilithiumSignature.getPublicKey() == null) {
                     dilithiumSignature.keyPair();
                 }
 
-                // Teste funcional: assinar e verificar
                 byte[] testData = "health_check_dilithium_tcc_unb".getBytes();
 
                 long signStart = System.currentTimeMillis();
