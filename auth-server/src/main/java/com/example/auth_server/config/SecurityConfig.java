@@ -195,7 +195,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/open-banking/**").permitAll()
                                                 .requestMatchers("/api/v1/dilithium/**").permitAll()
                                                 .requestMatchers("/api/v1/benchmark/**").permitAll()
-                                                .requestMatchers("/.well-known/**").permitAll()
+                                                .requestMatchers("/well-known/**").permitAll()
                                                 .requestMatchers("/oauth2/jwks").permitAll()
                                                 .requestMatchers("/api/v1/signature/**").permitAll()
                                                 .requestMatchers("/api/v1/jwt/**").permitAll()
@@ -214,12 +214,15 @@ public class SecurityConfig {
                                                                 "/open-banking/**",
                                                                 "/api/v1/dilithium/**",
                                                                 "/api/v1/benchmark/**",
-                                                                "/api/v1/signature/**", // ← ADICIONAR
-                                                                "/api/v1/jwt/**", // ← ADICIONAR
+                                                                "/api/v1/signature/**",
+                                                                "/api/v1/jwt/**",
                                                                 "/actuator/**",
                                                                 "/oauth2/token",
                                                                 "/oauth2/introspect",
-                                                                "/oauth2/revoke"));
+                                                                "/oauth2/revoke",
+                                                                "/api/v1/benchmark/keygen",
+                                                                "/api/v1/benchmark/cpu",
+                                                                "/api/v1/benchmark/compare "));
 
                 return http.build();
         }

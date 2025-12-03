@@ -35,6 +35,10 @@ public class SignatureMetricsExporter {
         private final AtomicLong dilithiumSignatureSize = new AtomicLong(0);
         private final AtomicLong rsaPublicKeySize = new AtomicLong(0);
         private final AtomicLong dilithiumPublicKeySize = new AtomicLong(0);
+        private final AtomicLong rsaSignThroughput = new AtomicLong(0);
+        private final AtomicLong rsaVerifyThroughput = new AtomicLong(0);
+        private final AtomicLong dilithiumSignThroughput = new AtomicLong(0);
+        private final AtomicLong dilithiumVerifyThroughput = new AtomicLong(0);
 
         public SignatureMetricsExporter(
                         MeterRegistry meterRegistry,
@@ -139,6 +143,35 @@ public class SignatureMetricsExporter {
                                 .tag("algorithm", "DILITHIUM")
                                 .description("Algoritmo Dilithium disponível")
                                 .register(meterRegistry);
+
+                Gauge.builder("signature.throughput.ops", rsaSignThroughput, AtomicLong::get)
+                                .tag("algorithm", "RSA")
+                                .tag("operation", "sign")
+                                .description("Throughput de assinatura RSA (ops/s)")
+                                .register(meterRegistry);
+
+                Gauge.builder("signature.throughput.ops", rsaVerifyThroughput, AtomicLong::get)
+                                .tag("algorithm", "RSA")
+                                .tag("operation", "verify")
+                                .description("Throughput de verificação RSA (ops/s)")
+                                .register(meterRegistry);
+
+                Gauge.builder("signature.throughput.ops", dilithiumSignThroughput, AtomicLong::get)
+                                .tag("algorithm", "DILITHIUM")
+                                .tag("operation", "sign")
+                                .description("Throughput de assinatura Dilithium (ops/s)")
+                                .register(meterRegistry);
+
+                Gauge.builder("signature.throughput.ops", dilithiumVerifyThroughput, AtomicLong::get)
+                                .tag("algorithm", "DILITHIUM")
+                                .tag("operation", "verify")
+                                .description("Throughput de verificação Dilithium (ops/s)")
+                                .register(meterRegistry);
+
+                rsaPublicKeySize.set(294);
+                dilithiumPublicKeySize.set(1952);
+                rsaSignatureSize.set(256);
+                dilithiumSignatureSize.set(3293);
         }
 
         public void recordRsaSign(long durationNanos, int signatureSize) {
@@ -171,5 +204,15 @@ public class SignatureMetricsExporter {
         public void recordDilithiumKeyGeneration(long durationMs, int publicKeySize) {
                 dilithiumKeyGenTime.set(durationMs);
                 dilithiumPublicKeySize.set(publicKeySize);
+        }
+
+        public void recordRsaThroughput(int signOps, int verifyOps) {
+                rsaSignThroughput.set(signOps);
+                rsaVerifyThroughput.set(verifyOps);
+        }
+
+        public void recordDilithiumThroughput(int signOps, int verifyOps) {
+                dilithiumSignThroughput.set(signOps);
+                dilithiumVerifyThroughput.set(verifyOps);
         }
 }
